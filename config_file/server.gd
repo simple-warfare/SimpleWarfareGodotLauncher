@@ -16,7 +16,7 @@ func load(path:String) -> void:
 	var err = config.load(path)
 	if err != OK:
 		return
-	self.server_path = Globals.SERVER_PATH.get(Globals.get_os_type(),"Unkown")
+	self.server_path = Consts.SERVER_PATH.get(Globals.get_os_type(),"Unkown")
 	if server_path == "Unkown":
 		return
 	var sections = config.get_sections()

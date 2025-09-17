@@ -1,16 +1,11 @@
 @tool
 extends "res://components/main_button.gd"
-class_name  MainMenuButton
+class_name  ChooseMapButton
 
 enum Kind{
-	Singleplayer,
-	Multiplayer,
-	Mods,
-	Maps,
-	Settings,
-	Community,
-	News,
-	Quit
+RandomMap,
+Ok,
+Back
 }
 	
 @export var kind : Kind:
@@ -20,7 +15,7 @@ enum Kind{
 			description = Kind.keys()[v]
 			lbl.text = description
 			_update_layout()
-			
+		
 
 func _on_ready() -> void:
 	description = Kind.keys()[kind]

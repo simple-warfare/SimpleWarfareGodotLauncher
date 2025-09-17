@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://df6ii438vf5nd"]
 
-[ext_resource type="Script" uid="uid://c4tt21tewl3ao" path="res://scenes/crash.gd" id="1_y7ohw"]
+[ext_resource type="Script" uid="uid://c4tt21tewl3ao" path="res://scripts/crash_scene/crash.gd" id="1_y7ohw"]
 [ext_resource type="Texture2D" uid="uid://ddt6pnkjtn1fw" path="res://assets/textures/interfaces/dialog.png" id="1_ypw0c"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y7ohw"]
@@ -21,7 +21,7 @@ RichTextLabel/fonts/bold_font = SubResource("FontVariation_y7ohw")
 
 [sub_resource type="Theme" id="Theme_jhe2d"]
 RichTextLabel/colors/default_color = Color(0.462745, 0.623529, 0.803922, 1)
-RichTextLabel/font_sizes/normal_font_size = 20
+RichTextLabel/font_sizes/normal_font_size = 30
 
 [node name="Crash" type="Control"]
 layout_mode = 3
@@ -67,9 +67,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 9
-theme_override_constants/margin_top = 9
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 9
-theme_override_constants/margin_bottom = 9
+theme_override_constants/margin_bottom = 8
 
 [node name="Background" type="Panel" parent="MainMenu/MarginContainer"]
 layout_mode = 2

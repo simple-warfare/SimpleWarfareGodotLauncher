@@ -1,21 +1,11 @@
 @tool
 extends Node
 
-var SERVER_PATH = {
-	Globals.OsKind.Linux:"user://simple_warfare_server",
-	Globals.OsKind.Windows:"user://simple_warfare_server.exe"
-}
 
-const LOADING_SCENE = preload("res://scenes/loading.tscn")
-const CRASH_SCENE = preload("res://scenes/crash.tscn")
-const NOW_USE_MOD_SET_CONF = "user://assets/mod_set/now_use.conf"
-const DEFALUT_MOD_SET = "user://assets/mod_set/defalut.toml"
-var loading_scene = LOADING_SCENE.instantiate()
-var crash_scene = CRASH_SCENE.instantiate()
+var loading_scene:Node = Consts.LOADING_SCENE.instantiate()
+var crash_scene:Node = Consts.CRASH_SCENE.instantiate()
 
-const MOD_SET_DIR = "user://assets/mod_set/"
-const MODS_DIR = "user://assets/mods/"
-const CUSTOM_MODS_DIR = "user://assets/mods/custom/"
+
 var all_mod_sets = Dictionary()
 var all_mod_infos = Dictionary()
 var all_enable_mod_to_mod_infos = Dictionary()
@@ -76,14 +66,14 @@ func scene_changed():
 	remove_child(loading_scene)
 	
 func load_mod_set():
-	var mod_set_dir = DirAccess.open(MOD_SET_DIR)
+	var mod_set_dir = DirAccess.open(Consts.MOD_SET_DIR)
 	var files = mod_set_dir.get_files()
 	for file in files:
 		if file.ends_with(".json"):
-			all_mod_sets.set(file, ModSet.new(all_mod_infos,MOD_SET_DIR + file))
+			all_mod_sets.set(file, ModSet.new(all_mod_infos,Consts.MOD_SET_DIR + file))
 		
-	if FileAccess.file_exists(NOW_USE_MOD_SET_CONF):
-		var now_use_mod_set = FileAccess.open(NOW_USE_MOD_SET_CONF,FileAccess.READ)
+	if FileAccess.file_exists(Consts.NOW_USE_MOD_SET_CONF):
+		var now_use_mod_set = FileAccess.open(Consts.NOW_USE_MOD_SET_CONF,FileAccess.READ)
 		if now_use_mod_set:
 			var mod_set_name = now_use_mod_set.get_line()
 			mod_set = all_mod_sets.get(mod_set_name)
@@ -94,9 +84,9 @@ func load_mod_set():
 
 func load_mod_infos():
 	var mod_info_folders = PackedStringArray()
-	get_mod_info_path(CUSTOM_MODS_DIR,mod_info_folders)
+	get_mod_info_path(Consts.CUSTOM_MODS_DIR,mod_info_folders)
 	for mod_info_folder in mod_info_folders:
-		var dir_access = DirAccess.open(CUSTOM_MODS_DIR)
+		var dir_access = DirAccess.open(Consts.CUSTOM_MODS_DIR)
 		var mod_info_file = FileAccess.open(mod_info_folder,FileAccess.READ)
 		all_mod_infos.set(mod_info_folder,ModInfo.new(dir_access.get_current_dir() + mod_info_folder + "/mod_info.json"))
 
@@ -135,5 +125,23 @@ func get_os_type() -> OsKind:
 
 func crash(crash_reason:String):
 	get_tree().current_scene.queue_free()
-	crash_scene.crash_reason.text = crash_reason
+	crash_scene.crash_reason = crash_reason
 	add_child(crash_scene)
+	
+	
+func quick_to_main_scene() -> void:
+	next_scene_and_change_when_ready(Consts.MAIN_SCENE_PATH)
+func quick_to_create_room_scene() -> void:
+	next_scene_and_change_when_ready(Consts.CREATE_ROOM_SCENE_PATH)
+func quick_to_game_scene() -> void:
+	next_scene_and_change_when_ready(Consts.GAME_SCENE_PATH)
+func quick_to_init_scene() -> void:
+	next_scene_and_change_when_ready(Consts.INIT_SCENE_PATH)
+func quick_to_mods_scene() -> void:
+	next_scene_and_change_when_ready(Consts.MODS_SCENE_PATH)
+func quick_to_multiplayer_lobby_scene() -> void:
+	next_scene_and_change_when_ready(Consts.MULTIPLAYER_LOBBY_SCENE_PATH)
+func quick_to_room_scene() -> void:
+	next_scene_and_change_when_ready(Consts.ROOM_SCENE_PATH)
+func quick_to_settings_scene() -> void:
+	next_scene_and_change_when_ready(Consts.SETTINGS_SCENE_PATH)

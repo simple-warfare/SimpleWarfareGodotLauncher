@@ -7,6 +7,7 @@ var client = WebSocketPeer.new()
 
 var tls_options: TLSOptions = null
 
+signal on_server_executed()
 signal on_server_closed(reason:String)
 signal on_server_closing()
 signal on_server_open()
@@ -16,20 +17,28 @@ signal on_client_closed(reason:String)
 signal on_client_closing()
 signal on_client_open()
 signal on_client_connecting()
-
 signal server_message_received(message: Variant)
 signal client_message_received(message: Variant)
+
+signal server_backend_output(str:String)
+
+var server_backend_output_buffer:PackedStringArray
+var client_backend_output_buffer:PackedStringArray
 
 func _ready() -> void:
 	set_process(false)
 
 func connect_adaptor() -> int:
-	server_backend = OS.execute_with_pipe(FileAccess.open(Globals.server_config.server_path,FileAccess.READ).get_path_absolute(), [])
+	var server_backend_path = FileAccess.open(Globals.server_config.server_path,FileAccess.READ).get_path_absolute()
+	server_backend = OS.execute_with_pipe(server_backend_path, [])
+	await get_tree().create_timer(1).timeout
+	print("start server backend at: " + server_backend_path)
 	if server_backend.is_empty():
 		Globals.crash("无法启动服务端")
 		#Globals.next_scene()
+	on_server_executed.emit()
 	#print(FileAccess.open(Globals.server_config.server_path,FileAccess.READ).get_path_absolute())
-	server_stdio = server_backend.get("stdio")
+	server_stdio = server_backend.get("stderr")
 	set_process(true)
 	return connect_to_url(Globals.server_config.server_url,Globals.server_config.client_url)
 
@@ -89,10 +98,20 @@ func poll(socket:WebSocketPeer,connecting:Signal,open:Signal,closing:Signal,clos
 	while state == socket.STATE_OPEN and socket.get_available_packet_count():
 		server_message_received.emit(get_message(socket))
 
+func read_process_output() :
+	if server_stdio.is_open() and server_stdio.get_error() == OK and server_stdio.get_position() < server_stdio.get_length():
+		var output = server_stdio.get_line()
+		output = output.replace("[0m","[/color]")
+		output = output.replace("[31m","[color=red]")
+		output = output.replace("[32m","[color=green]")
+		output = output.replace("[2m","[color=gray]")
+		server_backend_output_buffer.append(output)
+		server_backend_output.emit(output)
 
 func _process(delta):
 	poll(server,on_server_connecting,on_server_open,on_server_closing,on_client_closed,server_message_received)
 	poll(client,on_client_connecting,on_client_open,on_client_closing,on_client_closed,client_message_received)
+	read_process_output()
 	
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:

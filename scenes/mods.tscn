@@ -1,6 +1,6 @@
 [gd_scene load_steps=17 format=3 uid="uid://ljm6e27yrbda"]
 
-[ext_resource type="Script" uid="uid://cfub0hxk00f3w" path="res://scenes/mods.gd" id="1_xq3f7"]
+[ext_resource type="Script" uid="uid://cfub0hxk00f3w" path="res://scripts/mod_scene/mods.gd" id="1_xq3f7"]
 [ext_resource type="Texture2D" uid="uid://ddt6pnkjtn1fw" path="res://assets/textures/interfaces/dialog.png" id="2_4p6qy"]
 [ext_resource type="ButtonGroup" uid="uid://clvfylyuwf1dp" path="res://resources/button_group/mod_scene/enable_mod_info_button_group.tres" id="2_826na"]
 [ext_resource type="ButtonGroup" uid="uid://dycnclq3wpc47" path="res://resources/button_group/mod_scene/all_mod_info_button_group.tres" id="3_xq3f7"]

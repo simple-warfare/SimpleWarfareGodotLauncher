@@ -23,6 +23,7 @@ Globals="*res://GLOBALS.gd"
 Seetings="*res://SEETINGS.gd"
 Message="*res://scripts/backend/message.gd"
 Backend="*res://scripts/backend/backend.gd"
+Consts="*res://CONSTS.gd"
 
 [display]
 

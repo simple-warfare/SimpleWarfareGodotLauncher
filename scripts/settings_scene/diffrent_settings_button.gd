@@ -9,7 +9,8 @@ enum Kind{
 	Hotkeys,
 	Advanced,
 	Development,
-	ModSettings
+	ModSettings,
+	Back
 }
 	
 @export var kind : Kind:

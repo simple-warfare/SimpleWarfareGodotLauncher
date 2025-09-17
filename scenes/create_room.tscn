@@ -1,7 +1,7 @@
 [gd_scene load_steps=16 format=3 uid="uid://dp6cebvqgh76k"]
 
 [ext_resource type="Texture2D" uid="uid://ddt6pnkjtn1fw" path="res://assets/textures/interfaces/dialog.png" id="1_alqp6"]
-[ext_resource type="Script" uid="uid://cr2lpleqku6m8" path="res://scenes/create_room.gd" id="1_hugna"]
+[ext_resource type="Script" uid="uid://cr2lpleqku6m8" path="res://scripts/create_room_scene/create_room.gd" id="1_hugna"]
 [ext_resource type="ButtonGroup" uid="uid://bilykt7pejvmj" path="res://resources/button_group/create_room_scene/create_room_scene_button_group.tres" id="2_iju0h"]
 [ext_resource type="Theme" uid="uid://b3lrippcdysde" path="res://themes/button/main_menu_button.tres" id="3_iju0h"]
 [ext_resource type="Script" uid="uid://cd4nr314yrf8d" path="res://scripts/create_room_scene/create_room_scene_button.gd" id="5_hugna"]
@@ -84,9 +84,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 9
-theme_override_constants/margin_top = 9
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 9
-theme_override_constants/margin_bottom = 9
+theme_override_constants/margin_bottom = 8
 
 [node name="Background" type="Panel" parent="MainMenu/MarginContainer"]
 layout_mode = 2
@@ -502,19 +502,19 @@ toggle_mode = true
 button_group = ExtResource("2_iju0h")
 text = "                  "
 script = ExtResource("5_hugna")
-description = "Change Map"
+description = "ChangeMap"
 
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control2/Control/MarginContainer/LeaveChat"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = -14.0
+offset_left = -10.5
 offset_top = 3.0521
-offset_right = 137.0
+offset_right = 133.5
 offset_bottom = 37.9479
-pivot_offset = Vector2(75.5, 17.4479)
+pivot_offset = Vector2(72, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "Change Map"
+text = "ChangeMap"
 label_settings = SubResource("LabelSettings_8jb3i")
 
 [node name="Control3" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control2"]

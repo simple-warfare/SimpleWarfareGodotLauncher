@@ -6,25 +6,25 @@ extends Control
 @export var all_menus:Dictionary
 @export var server_backend_version:Label
 
-var menu_kind:MenuKind
+var menu_kind:MainMenuKind
 
 func _ready() -> void:
 	main_menu_button_group.pressed.connect(main_menu_button_pressed)
 	singleplayer_menu_button_group.pressed.connect(singleplayer_menu_button_pressed)
 	Backend.receive_server_info.connect(show_server_info)
-	change_menu(MenuKind.Kind.Main)
+	change_menu(MainMenuKind.Kind.Main)
 	update_menu_show()
 		
 func main_menu_button_pressed(button:Button) -> void:
 	match button.kind:
 		MainMenuButton.Kind.Singleplayer:
-			change_menu(MenuKind.Kind.Singleplayer)
+			change_menu(MainMenuKind.Kind.Singleplayer)
 		MainMenuButton.Kind.Multiplayer:
-			Globals.next_scene_and_change_when_ready("res://scenes/multiplayer_lobby.tscn")
+			Globals.quick_to_multiplayer_lobby_scene()
 		MainMenuButton.Kind.Mods:
-			Globals.next_scene_and_change_when_ready("res://scenes/mods.tscn")
+			Globals.quick_to_mods_scene()
 		MainMenuButton.Kind.Settings:
-			Globals.next_scene_and_change_when_ready("res://scenes/settings.tscn")
+			Globals.quick_to_settings_scene()
 		MainMenuButton.Kind.Community:
 			pass
 		MainMenuButton.Kind.News:
@@ -40,17 +40,13 @@ func singleplayer_menu_button_pressed(button:Button) -> void:
 		SingleplayerMenuButton.Kind.Skirmish:
 			pass
 		SingleplayerMenuButton.Kind.SandBox:
-			Globals.next_scene_and_change_when_ready("res://scenes/room.tscn")
+			Globals.quick_to_room_scene()
 		SingleplayerMenuButton.Kind.Back:
-			change_menu(MenuKind.Kind.Main)
+			change_menu(MainMenuKind.Kind.Main)
 	button.button_pressed = false
 
-func change_menu(kind:MenuKind.Kind) -> void:
-	match kind:
-		MenuKind.Kind.Main:
-			menu_kind = all_menus.keys().get(0)
-		MenuKind.Kind.Singleplayer:
-			menu_kind = all_menus.keys().get(1)
+func change_menu(kind:MainMenuKind.Kind) -> void:
+	menu_kind = all_menus.keys().get(kind)
 	update_menu_show()
 	
 func update_menu_show():

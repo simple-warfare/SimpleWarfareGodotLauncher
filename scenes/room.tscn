@@ -1,7 +1,7 @@
 [gd_scene load_steps=19 format=3 uid="uid://hca6vrd1ujp5"]
 
 [ext_resource type="Texture2D" uid="uid://ddt6pnkjtn1fw" path="res://assets/textures/interfaces/dialog.png" id="1_14vil"]
-[ext_resource type="Script" uid="uid://oifdpsf4mo2x" path="res://scenes/room.gd" id="1_jn645"]
+[ext_resource type="Script" uid="uid://oifdpsf4mo2x" path="res://scripts/room_scene/room.gd" id="1_jn645"]
 [ext_resource type="ButtonGroup" uid="uid://u2yq80a7nn85" path="res://resources/button_group/room_scene/room_scene_button_group.tres" id="2_jn645"]
 [ext_resource type="Theme" uid="uid://b3lrippcdysde" path="res://themes/button/main_menu_button.tres" id="2_jxe34"]
 [ext_resource type="Script" uid="uid://v7phejoc8o7g" path="res://scripts/room_scene/room_scene_button.gd" id="4_jxe34"]
@@ -107,9 +107,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 9
-theme_override_constants/margin_top = 9
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 9
-theme_override_constants/margin_bottom = 9
+theme_override_constants/margin_bottom = 8
 
 [node name="Background" type="Panel" parent="MainMenu/MarginContainer"]
 layout_mode = 2
@@ -310,7 +310,7 @@ text = "Ready"
 layout_mode = 1
 anchor_top = 0.1
 anchor_right = 1.0
-anchor_bottom = 0.92
+anchor_bottom = 0.94
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -333,16 +333,20 @@ anchor_right = 1.0
 anchor_bottom = 0.91
 grow_horizontal = 2
 
-[node name="Panel" type="Panel" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control"]
+[node name="MarginContainer" type="MarginContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_bottom = 10
+
+[node name="Panel" type="Panel" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer"]
+layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_tk5fv")
 
-[node name="MarginContainer" type="MarginContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -354,24 +358,24 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 10
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer"]
 layout_mode = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Control3" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer"]
+[node name="Control3" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="Control" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
+[node name="Control" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
 layout_mode = 1
 anchor_right = 0.3
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -389,7 +393,7 @@ text = "Shishanyue"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Control5" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
+[node name="Control5" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
 layout_mode = 1
 anchor_left = 0.3
 anchor_right = 0.4
@@ -397,14 +401,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Control" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control5"]
+[node name="Control" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control5"]
 layout_mode = 1
 anchor_right = 0.3
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ColorRect" type="ColorRect" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control5/Control"]
+[node name="ColorRect" type="ColorRect" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control5/Control"]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
@@ -415,7 +419,7 @@ offset_bottom = 10.0
 grow_vertical = 2
 color = Color(1, 0, 0, 1)
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control5"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control5"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.3
@@ -427,7 +431,7 @@ theme = SubResource("Theme_eom3m")
 text = "Red"
 vertical_alignment = 1
 
-[node name="Control6" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
+[node name="Control6" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
 layout_mode = 1
 anchor_left = 0.4
 anchor_right = 0.65
@@ -435,7 +439,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control6"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control6"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -453,7 +457,7 @@ text = "Common"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Control2" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
+[node name="Control2" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
 layout_mode = 1
 anchor_left = 0.65
 anchor_right = 0.75
@@ -461,7 +465,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control2"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control2"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -480,7 +484,7 @@ text = "A"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Control3" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
+[node name="Control3" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
 layout_mode = 1
 anchor_left = 0.75
 anchor_right = 0.9
@@ -488,7 +492,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control3"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control3"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -507,7 +511,7 @@ text = "Spawn"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Control4" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
+[node name="Control4" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3"]
 layout_mode = 1
 anchor_left = 0.9
 anchor_right = 1.0
@@ -515,7 +519,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control4"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control/MarginContainer/Panel/MarginContainer/VBoxContainer/PanelContainer/Control3/Control4"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -570,19 +574,19 @@ toggle_mode = true
 button_group = ExtResource("2_jn645")
 text = " "
 script = ExtResource("4_jxe34")
-description = "Slot Admin"
+description = "SlotAdmin"
 
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control2/Panel/MarginContainer/SlotAdmin"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = -59.5
+offset_left = -56.0
 offset_top = 3.0521
-offset_right = 72.5
+offset_right = 69.0
 offset_bottom = 37.9479
-pivot_offset = Vector2(66, 17.4479)
+pivot_offset = Vector2(62.5, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "Slot Admin"
+text = "SlotAdmin"
 label_settings = SubResource("LabelSettings_23wr2")
 
 [node name="MarginContainer4" type="MarginContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control/Control2/Panel"]
@@ -812,19 +816,19 @@ toggle_mode = true
 button_group = ExtResource("2_jn645")
 text = "                                 "
 script = ExtResource("4_jxe34")
-description = "Slot Admin"
+description = "SlotAdmin"
 
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control3/Control2/MarginContainer/MarginContainer/SlotAdmin"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = 44.5
+offset_left = 48.0
 offset_top = 3.0521
-offset_right = 176.5
+offset_right = 173.0
 offset_bottom = 37.9479
-pivot_offset = Vector2(66, 17.4479)
+pivot_offset = Vector2(62.5, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "Slot Admin"
+text = "SlotAdmin"
 label_settings = SubResource("LabelSettings_qvc4m")
 
 [node name="Control5" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2"]
@@ -845,13 +849,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Panel" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control5/Control"]
+[node name="MarginContainer" type="MarginContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control5/Control"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Panel" type="Panel" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control5/Control/MarginContainer"]
+layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_tk5fv")
 
 [node name="Control4" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2"]
@@ -989,6 +998,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_bottom = 5
 
@@ -1008,10 +1018,15 @@ description = "All"
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control4/Control2/MarginContainer/All"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = -9.0
-offset_top = 3.0521
-offset_right = 22.0
-offset_bottom = 37.9479
+offset_top = 3.05208
+offset_right = 9.0
+offset_bottom = -3.05209
+grow_horizontal = 2
+grow_vertical = 2
 pivot_offset = Vector2(15.5, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
@@ -1020,7 +1035,7 @@ label_settings = SubResource("LabelSettings_23wr2")
 
 [node name="Control4" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control"]
 layout_mode = 1
-anchor_top = 0.92
+anchor_top = 0.95
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -1042,7 +1057,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 5
+theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 5
 
 [node name="StartGame" type="Button" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control4/Control3/MarginContainer"]
@@ -1055,19 +1070,24 @@ button_group = ExtResource("2_jn645")
 text = " "
 script = ExtResource("4_jxe34")
 kind = 7
-description = "Start Game"
+description = "StartGame"
 
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control4/Control3/MarginContainer/StartGame"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = -62.0
-offset_top = 3.0521
-offset_right = 75.0
-offset_bottom = 37.9479
-pivot_offset = Vector2(68.5, 17.4479)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -58.5
+offset_top = 3.05208
+offset_right = 58.5
+offset_bottom = -3.05209
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(65, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "Start Game"
+text = "StartGame"
 label_settings = SubResource("LabelSettings_23wr2")
 
 [node name="Control2" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control4"]
@@ -1104,10 +1124,15 @@ description = "Back"
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control4/Control2/MarginContainer/Back"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = -22.5
-offset_top = 3.0521
-offset_right = 35.5
-offset_bottom = 37.9479
+offset_top = 3.05208
+offset_right = 22.5
+offset_bottom = -3.05209
+grow_horizontal = 2
+grow_vertical = 2
 pivot_offset = Vector2(29, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20

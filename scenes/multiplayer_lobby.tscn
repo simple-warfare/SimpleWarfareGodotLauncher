@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://8ted088ouecj"]
 
-[ext_resource type="Script" uid="uid://bqdf7gc6xlnfn" path="res://scenes/multiplayer_lobby.gd" id="1_2meg6"]
+[ext_resource type="Script" uid="uid://bqdf7gc6xlnfn" path="res://scripts/multiplayer_scene/multiplayer_lobby.gd" id="1_2meg6"]
 [ext_resource type="Texture2D" uid="uid://ddt6pnkjtn1fw" path="res://assets/textures/interfaces/dialog.png" id="1_8ihvg"]
 [ext_resource type="Theme" uid="uid://b3lrippcdysde" path="res://themes/button/main_menu_button.tres" id="2_2meg6"]
 [ext_resource type="ButtonGroup" uid="uid://bjpbh6nnmym1o" path="res://resources/button_group/mod_scene/multiplayer_scene_button_group.tres" id="4_2meg6"]
@@ -82,9 +82,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 9
-theme_override_constants/margin_top = 9
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 9
-theme_override_constants/margin_bottom = 9
+theme_override_constants/margin_bottom = 8
 
 [node name="Background" type="Panel" parent="MainMenu/MarginContainer"]
 layout_mode = 2
@@ -299,19 +299,19 @@ toggle_mode = true
 button_group = ExtResource("4_2meg6")
 text = " "
 script = ExtResource("4_nwqwq")
-description = "Filter Games"
+description = "FilterGames"
 
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control/Control2/Panel/MarginContainer/FilterGames"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = -69.5
+offset_left = -66.5
 offset_top = 3.0521
-offset_right = 82.5
+offset_right = 79.5
 offset_bottom = 37.9479
-pivot_offset = Vector2(76, 17.4479)
+pivot_offset = Vector2(73, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "Filter Games"
+text = "FilterGames"
 label_settings = SubResource("LabelSettings_nwqwq")
 
 [node name="MarginContainer2" type="MarginContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control/Control2/Panel"]
@@ -337,19 +337,19 @@ button_group = ExtResource("4_2meg6")
 text = " "
 script = ExtResource("4_nwqwq")
 kind = 1
-description = "Direct IP"
+description = "DirectIp"
 
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control/Control2/Panel/MarginContainer2/DirectIp"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = -45.0
+offset_left = -41.5
 offset_top = 3.0521
-offset_right = 58.0
+offset_right = 54.5
 offset_bottom = 37.9479
-pivot_offset = Vector2(51.5, 17.4479)
+pivot_offset = Vector2(48, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "Direct IP"
+text = "DirectIp"
 label_settings = SubResource("LabelSettings_nwqwq")
 
 [node name="MarginContainer3" type="MarginContainer" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control2/Control/Control2/Panel"]
@@ -503,8 +503,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
 [node name="Panel" type="Panel" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control4/Control/Control/MarginContainer"]
 layout_mode = 2
@@ -538,19 +538,19 @@ button_group = ExtResource("4_2meg6")
 text = "                                           "
 script = ExtResource("4_nwqwq")
 kind = 3
-description = "Leave Chat"
+description = "LeaveChat"
 
 [node name="Label" type="Label" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control4/Control/Control2/MarginContainer/LeaveChat"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = 76.5
+offset_left = 79.5
 offset_top = 3.0521
-offset_right = 209.5
+offset_right = 206.5
 offset_bottom = 37.9479
-pivot_offset = Vector2(66.5, 17.4479)
+pivot_offset = Vector2(63.5, 17.4479)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "Leave Chat"
+text = "LeaveChat"
 label_settings = SubResource("LabelSettings_nwqwq")
 
 [node name="Control2" type="Control" parent="MainMenu/MarginContainer/Background/MarginContainer/Control/Control4"]
