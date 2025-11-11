@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://bgwrw514icxjw"]
+
+[node name="MapViewer" type="Node2D"]

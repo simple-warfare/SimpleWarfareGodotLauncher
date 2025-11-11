@@ -1,23 +1,22 @@
-[gd_scene load_steps=13 format=3 uid="uid://di2odblkdanru"]
+[gd_scene load_steps=12 format=3 uid="uid://dc3esc2lnrn8f"]
 
-[ext_resource type="Script" uid="uid://bspw8bieap8ds" path="res://scripts/choose_map_scene/choose_map.gd" id="1_n1r7q"]
-[ext_resource type="Texture2D" uid="uid://ddt6pnkjtn1fw" path="res://assets/textures/interfaces/dialog.png" id="1_tk1oc"]
-[ext_resource type="Script" uid="uid://c34pm1oxubpk0" path="res://scripts/choose_map_scene/map_container_background.gd" id="2_ofyh8"]
-[ext_resource type="Theme" uid="uid://b3lrippcdysde" path="res://themes/button/main_menu_button.tres" id="3_dq0v4"]
-[ext_resource type="Texture2D" uid="uid://bpne3dxoq1lvk" path="res://assets/textures/interfaces/too_larget_thumbnail.png" id="3_uu74g"]
-[ext_resource type="ButtonGroup" uid="uid://cphtfarflcvk8" path="res://resources/button_group/choose_map_scene/choose_map_button_group.tres" id="6_qy667"]
-[ext_resource type="Script" uid="uid://b3556385isqhn" path="res://scripts/choose_map_scene/choose_map_button.gd" id="6_uu74g"]
+[ext_resource type="Texture2D" uid="uid://ddt6pnkjtn1fw" path="res://assets/textures/interfaces/dialog.png" id="1_0h07o"]
+[ext_resource type="Script" uid="uid://c34pm1oxubpk0" path="res://scripts/choose_map_scene/map_container_background.gd" id="2_i2egg"]
+[ext_resource type="Texture2D" uid="uid://bpne3dxoq1lvk" path="res://assets/textures/interfaces/too_larget_thumbnail.png" id="3_d70j8"]
+[ext_resource type="Theme" uid="uid://b3lrippcdysde" path="res://themes/button/main_menu_button.tres" id="4_jak3o"]
+[ext_resource type="ButtonGroup" uid="uid://cphtfarflcvk8" path="res://resources/button_group/choose_map_scene/choose_map_button_group.tres" id="5_3j78f"]
+[ext_resource type="Script" uid="uid://b3556385isqhn" path="res://scripts/choose_map_scene/choose_map_button.gd" id="6_6075l"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ofyh8"]
-atlas = ExtResource("1_tk1oc")
+[sub_resource type="AtlasTexture" id="AtlasTexture_0oqvi"]
+atlas = ExtResource("1_0h07o")
 region = Rect2(512, 464, 209, 33)
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qy667"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kpbyd"]
 
-[sub_resource type="Theme" id="Theme_ofyh8"]
+[sub_resource type="Theme" id="Theme_h8eei"]
 GridContainer/constants/h_separation = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uu74g"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ekr7o"]
 bg_color = Color(0.168627, 0.168627, 0.168627, 0)
 border_width_left = 3
 border_width_top = 3
@@ -25,7 +24,7 @@ border_width_right = 3
 border_width_bottom = 3
 border_color = Color(0.0904055, 0.0904056, 0.0904054, 1)
 
-[sub_resource type="LabelSettings" id="LabelSettings_v1lvu"]
+[sub_resource type="LabelSettings" id="LabelSettings_ve1yf"]
 font_size = 25
 shadow_size = 4
 shadow_color = Color(0, 0, 0, 0.65098)
@@ -37,7 +36,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_n1r7q")
 
 [node name="ChooseMap" type="NinePatchRect" parent="."]
 layout_mode = 1
@@ -49,7 +47,7 @@ anchor_bottom = 0.95
 offset_top = -1.52588e-05
 grow_horizontal = 2
 grow_vertical = 2
-texture = SubResource("AtlasTexture_ofyh8")
+texture = SubResource("AtlasTexture_0oqvi")
 patch_margin_left = 9
 patch_margin_top = 9
 patch_margin_right = 9
@@ -85,7 +83,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "ChooseMap"
+text = "Maps"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -141,7 +139,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxEmpty_qy667")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_kpbyd")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ChooseMap/MarginContainer/Control/Control4/Panel"]
 layout_mode = 1
@@ -162,13 +160,13 @@ theme_override_constants/margin_right = 10
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme = SubResource("Theme_ofyh8")
+theme = SubResource("Theme_h8eei")
 columns = 5
 
 [node name="Panel" type="Panel" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer" node_paths=PackedStringArray("map_container_reference")]
 custom_minimum_size = Vector2(294, 352.8)
 layout_mode = 2
-script = ExtResource("2_ofyh8")
+script = ExtResource("2_i2egg")
 map_container_reference = NodePath("..")
 
 [node name="Control" type="Control" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel"]
@@ -204,12 +202,12 @@ grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel/Control/MarginContainer/Control/AspectRatioContainer"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_uu74g")
+theme_override_styles/panel = SubResource("StyleBoxFlat_ekr7o")
 
 [node name="TextureRect" type="TextureRect" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel/Control/MarginContainer/Control/AspectRatioContainer/PanelContainer"]
 texture_filter = 1
 layout_mode = 2
-texture = ExtResource("3_uu74g")
+texture = ExtResource("3_d70j8")
 
 [node name="MarginContainer" type="MarginContainer" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel/Control/MarginContainer/Control"]
 layout_mode = 1
@@ -230,38 +228,34 @@ alignment = 1
 
 [node name="MapName" type="Label" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel/Control/MarginContainer/Control/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "MapName"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Conqueset" type="Label" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel/Control/MarginContainer/Control/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Conqueset"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CreatedBy" type="Label" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel/Control/MarginContainer/Control/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "CreatedBy"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="MapSize" type="Label" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel/Control/MarginContainer/Control/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "MapSize"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Panel2" type="Panel" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer" node_paths=PackedStringArray("map_container_reference")]
 custom_minimum_size = Vector2(294, 352.8)
 layout_mode = 2
-script = ExtResource("2_ofyh8")
+script = ExtResource("2_i2egg")
 map_container_reference = NodePath("..")
 
 [node name="Panel3" type="Panel" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer" node_paths=PackedStringArray("map_container_reference")]
 custom_minimum_size = Vector2(294, 352.8)
 layout_mode = 2
-script = ExtResource("2_ofyh8")
+script = ExtResource("2_i2egg")
 map_container_reference = NodePath("..")
 
 [node name="Control" type="Control" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel3"]
@@ -283,13 +277,13 @@ grow_vertical = 2
 [node name="Panel4" type="Panel" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer" node_paths=PackedStringArray("map_container_reference")]
 custom_minimum_size = Vector2(294, 352.8)
 layout_mode = 2
-script = ExtResource("2_ofyh8")
+script = ExtResource("2_i2egg")
 map_container_reference = NodePath("..")
 
 [node name="Panel5" type="Panel" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer" node_paths=PackedStringArray("map_container_reference")]
 custom_minimum_size = Vector2(294, 352.8)
 layout_mode = 2
-script = ExtResource("2_ofyh8")
+script = ExtResource("2_i2egg")
 map_container_reference = NodePath("..")
 
 [node name="Control" type="Control" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer/Panel5"]
@@ -311,7 +305,7 @@ grow_vertical = 2
 [node name="Panel6" type="Panel" parent="ChooseMap/MarginContainer/Control/Control4/Panel/ScrollContainer/MarginContainer/GridContainer" node_paths=PackedStringArray("map_container_reference")]
 custom_minimum_size = Vector2(294, 352.8)
 layout_mode = 2
-script = ExtResource("2_ofyh8")
+script = ExtResource("2_i2egg")
 map_container_reference = NodePath("..")
 
 [node name="Control3" type="Control" parent="ChooseMap/MarginContainer/Control"]
@@ -399,12 +393,12 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
-theme = ExtResource("3_dq0v4")
+theme = ExtResource("4_jak3o")
 theme_override_font_sizes/font_size = 25
 toggle_mode = true
-button_group = ExtResource("6_qy667")
+button_group = ExtResource("5_3j78f")
 text = " "
-script = ExtResource("6_uu74g")
+script = ExtResource("6_6075l")
 kind = 2
 description = "Back"
 
@@ -419,7 +413,7 @@ pivot_offset = Vector2(29, 17.447916)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
 text = "Back"
-label_settings = SubResource("LabelSettings_v1lvu")
+label_settings = SubResource("LabelSettings_ve1yf")
 
 [node name="MarginContainer2" type="MarginContainer" parent="ChooseMap/MarginContainer/Control/Control3/MarginContainer/Control/Control2/Control"]
 layout_mode = 1
@@ -433,12 +427,12 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
-theme = ExtResource("3_dq0v4")
+theme = ExtResource("4_jak3o")
 theme_override_font_sizes/font_size = 25
 toggle_mode = true
-button_group = ExtResource("6_qy667")
+button_group = ExtResource("5_3j78f")
 text = " "
-script = ExtResource("6_uu74g")
+script = ExtResource("6_6075l")
 kind = 1
 description = "Ok"
 
@@ -453,7 +447,7 @@ pivot_offset = Vector2(17, 17.447916)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
 text = "Ok"
-label_settings = SubResource("LabelSettings_v1lvu")
+label_settings = SubResource("LabelSettings_ve1yf")
 
 [node name="Control2" type="Control" parent="ChooseMap/MarginContainer/Control/Control3/MarginContainer/Control/Control2"]
 layout_mode = 1
@@ -474,12 +468,12 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
-theme = ExtResource("3_dq0v4")
+theme = ExtResource("4_jak3o")
 theme_override_font_sizes/font_size = 25
 toggle_mode = true
-button_group = ExtResource("6_qy667")
+button_group = ExtResource("5_3j78f")
 text = " "
-script = ExtResource("6_uu74g")
+script = ExtResource("6_6075l")
 description = "RandomMap"
 
 [node name="Label" type="Label" parent="ChooseMap/MarginContainer/Control/Control3/MarginContainer/Control/Control2/Control2/MarginContainer2/RandomMap"]
@@ -493,7 +487,7 @@ pivot_offset = Vector2(77.5, 17.447916)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
 text = "RandomMap"
-label_settings = SubResource("LabelSettings_v1lvu")
+label_settings = SubResource("LabelSettings_ve1yf")
 
 [connection signal="ready" from="ChooseMap/MarginContainer/Control/Control3/MarginContainer/Control/Control2/Control/MarginContainer/Back" to="ChooseMap/MarginContainer/Control/Control3/MarginContainer/Control/Control2/Control/MarginContainer/Back" method="_on_ready"]
 [connection signal="ready" from="ChooseMap/MarginContainer/Control/Control3/MarginContainer/Control/Control2/Control/MarginContainer2/Ok" to="ChooseMap/MarginContainer/Control/Control3/MarginContainer/Control/Control2/Control/MarginContainer2/Ok" method="_on_ready"]

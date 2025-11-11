@@ -13,7 +13,6 @@
 
 [sub_resource type="Resource" id="Resource_ya4ey"]
 script = ExtResource("4_choun")
-kind = 0
 metadata/_custom_type_script = "uid://c45tamqfmmwwh"
 
 [sub_resource type="Resource" id="Resource_eb6dy"]
@@ -203,7 +202,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 text = "Maps"
 label_settings = ExtResource("6_tefeu")
 
-[node name="Settings" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
+[node name="MapEditor" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
 focus_mode = 0
 theme = ExtResource("4_tbgi4")
@@ -212,22 +211,22 @@ toggle_mode = true
 button_group = ExtResource("3_sugp2")
 text = " "
 script = ExtResource("5_tefeu")
-kind = 3
-description = "Maps"
+kind = 4
+description = "MapEditor"
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/Settings"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/MapEditor"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
-offset_left = 89.5
+offset_left = 53.5
 offset_top = 6.5625
-offset_right = 168.5
+offset_right = 204.5
 offset_bottom = 48.4375
-pivot_offset = Vector2(39.5, 20.9375)
+pivot_offset = Vector2(75.5, 20.9375)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-text = "Maps"
+text = "MapEditor"
 label_settings = ExtResource("6_tefeu")
 
-[node name="Community" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
+[node name="Settings" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
 focus_mode = 0
 theme = ExtResource("4_tbgi4")
@@ -239,7 +238,7 @@ script = ExtResource("5_tefeu")
 kind = 4
 description = "Settings"
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/Community"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/Settings"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
 offset_left = 70.5
@@ -251,7 +250,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 text = "Settings"
 label_settings = ExtResource("6_tefeu")
 
-[node name="News" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
+[node name="Community" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
 focus_mode = 0
 theme = ExtResource("4_tbgi4")
@@ -263,7 +262,7 @@ script = ExtResource("5_tefeu")
 kind = 5
 description = "Community"
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/News"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/Community"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
 offset_left = 44.0
@@ -275,7 +274,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 text = "Community"
 label_settings = ExtResource("6_tefeu")
 
-[node name="Quit" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
+[node name="News" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
 focus_mode = 0
 theme = ExtResource("4_tbgi4")
@@ -287,7 +286,7 @@ script = ExtResource("5_tefeu")
 kind = 6
 description = "News"
 
-[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/Quit"]
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/News"]
 modulate = Color(0.8, 0.8, 0.8, 1)
 layout_mode = 1
 offset_left = 89.0
@@ -297,6 +296,30 @@ offset_bottom = 48.4375
 pivot_offset = Vector2(40, 20.9375)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 text = "News"
+label_settings = ExtResource("6_tefeu")
+
+[node name="Quit" type="Button" parent="MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+theme = ExtResource("4_tbgi4")
+theme_override_font_sizes/font_size = 35
+toggle_mode = true
+button_group = ExtResource("3_sugp2")
+text = " "
+script = ExtResource("5_tefeu")
+kind = 7
+description = "Quit"
+
+[node name="Label" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/Quit"]
+modulate = Color(0.8, 0.8, 0.8, 1)
+layout_mode = 1
+offset_left = 97.5
+offset_top = 6.5625
+offset_right = 160.5
+offset_bottom = 48.4375
+pivot_offset = Vector2(31.5, 20.9375)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+text = "Quit"
 label_settings = ExtResource("6_tefeu")
 
 [node name="Control" type="Control" parent="MainMenu/MarginContainer"]
@@ -417,6 +440,7 @@ label_settings = ExtResource("6_tefeu")
 [connection signal="ready" from="MainMenu/MarginContainer/VBoxContainer/Multiplayer" to="MainMenu/MarginContainer/VBoxContainer/Multiplayer" method="_on_ready"]
 [connection signal="ready" from="MainMenu/MarginContainer/VBoxContainer/Mods" to="MainMenu/MarginContainer/VBoxContainer/Mods" method="_on_ready"]
 [connection signal="ready" from="MainMenu/MarginContainer/VBoxContainer/Maps" to="MainMenu/MarginContainer/VBoxContainer/Maps" method="_on_ready"]
+[connection signal="ready" from="MainMenu/MarginContainer/VBoxContainer/MapEditor" to="MainMenu/MarginContainer/VBoxContainer/MapEditor" method="_on_ready"]
 [connection signal="ready" from="MainMenu/MarginContainer/VBoxContainer/Settings" to="MainMenu/MarginContainer/VBoxContainer/Settings" method="_on_ready"]
 [connection signal="ready" from="MainMenu/MarginContainer/VBoxContainer/Community" to="MainMenu/MarginContainer/VBoxContainer/Community" method="_on_ready"]
 [connection signal="ready" from="MainMenu/MarginContainer/VBoxContainer/News" to="MainMenu/MarginContainer/VBoxContainer/News" method="_on_ready"]

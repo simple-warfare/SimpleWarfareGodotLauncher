@@ -7,6 +7,7 @@ enum Kind{
 	Multiplayer,
 	Mods,
 	Maps,
+	MapEditor,
 	Settings,
 	Community,
 	News,
