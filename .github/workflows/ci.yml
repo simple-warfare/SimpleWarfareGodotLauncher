@@ -41,7 +41,10 @@ jobs:
           import subprocess
           import sys
 
-          pattern = re.compile(r"[A-Za-z]:[\\/]|Users[\\/]|Program[\\/]")
+          patterns = [
+              re.compile(r"(^|[^A-Za-z])[A-Za-z]:[\\/]"),
+              re.compile(r"(^|[\\/])(Users|Program)[\\/]"),
+          ]
           skipped_dirs = {".git", ".github"}
           text_suffixes = {".md", ".gd", ".tscn", ".tres", ".cfg", ".toml", ".gdextension", ".import"}
           files = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
@@ -55,7 +58,7 @@ jobs:
                   continue
               text = path.read_text(encoding="utf-8", errors="ignore")
               for line_no, line in enumerate(text.splitlines(), 1):
-                  if pattern.search(line):
+                  if any(pattern.search(line) for pattern in patterns):
                       hits.append(f"{raw_path}:{line_no}: {line}")
 
           if hits:
