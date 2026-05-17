@@ -158,7 +158,7 @@ func _handle_camera_movement(delta: float) -> void:
 	_camera.position += normalized_direction * CAMERA_MOVE_SPEED * delta / _camera.zoom.x
 
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if !_camera_initialized:
 		return
 	if event is InputEventMouseButton && event.pressed:
