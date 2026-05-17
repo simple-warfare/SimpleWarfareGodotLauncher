@@ -1,6 +1,46 @@
-[gd_scene load_steps=2 format=3 uid="uid://dhqcb2t1epd07"]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://cvb284rrmc3ct" path="res://scripts/game_scene/game.gd" id="1_uwrxv"]
+[ext_resource type="Script" path="res://scripts/game/game.gd" id="1_game"]
 
-[node name="Game" type="Node2D"]
-script = ExtResource("1_uwrxv")
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_game")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0313726, 0.0431373, 0.0392157, 1)
+
+[node name="Grid" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0784314, 0.105882, 0.0862745, 1)
+
+[node name="World" type="Node2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(220, 160)
+
+[node name="Hud" type="PanelContainer" parent="."]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 620.0
+offset_bottom = 100.0
+
+[node name="StatusValue" type="Label" parent="Hud"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Waiting for snapshot"

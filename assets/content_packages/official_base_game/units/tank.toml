@@ -1,0 +1,11 @@
+id = "official:tank"
+
+[core]
+display_name = "Tank"
+max_hp = 210
+mass = 3000.0
+radius = 11.0
+
+[movement]
+kind = "land"
+max_speed = 1.1

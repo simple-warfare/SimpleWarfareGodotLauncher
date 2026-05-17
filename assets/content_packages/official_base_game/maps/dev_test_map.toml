@@ -1,0 +1,25 @@
+id = "official:dev_test_map"
+title = "Dev Test Map"
+schema_version = 1
+width = 64
+height = 64
+tile_size = 20
+
+[[teams]]
+id = 0
+name = "Player"
+ally_group = 0
+starting_resources = { "official:credits" = 4000 }
+
+[[teams]]
+id = 1
+name = "Enemy"
+ally_group = 1
+starting_resources = { "official:credits" = 4000 }
+
+[[initial_units]]
+unit = "official:tank"
+team = 0
+x = 120.0
+y = 240.0
+facing_degrees = 0.0

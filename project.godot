@@ -8,22 +8,23 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="SimpleWarfareGodotLauncher"
-run/main_scene="uid://mwjrfy6co3tv"
+run/main_scene="res://scenes/bootstrap.tscn"
 config/use_custom_user_dir=true
-config/features=PackedStringArray("4.5", "GL Compatibility")
+config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
-Adaptor="*res://scripts/adaptor/adaptor.gd"
-Globals="*res://GLOBALS.gd"
-Seetings="*res://SEETINGS.gd"
-Message="*res://scripts/backend/message.gd"
-Backend="*res://scripts/backend/backend.gd"
-Consts="*res://CONSTS.gd"
+RustBackend="*res://scripts/backend/rust_backend.gd"
+AppState="*res://scripts/app/app_state.gd"
+SceneRouter="*res://scripts/app/scene_router.gd"
 
 [display]
 
@@ -33,15 +34,6 @@ window/size/resizable=false
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/stretch/scale=0.7
-
-[dotnet]
-
-project/assembly_name="SimpleWarfareGodotLauncher"
-
-[editor]
-
-version_control/plugin_name="GitPlugin"
-version_control/autoload_on_startup=true
 
 [gui]
 

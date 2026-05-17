@@ -2,6 +2,11 @@
 .godot/
 .nomedia
 
+# Local notes, reference dumps and generated debug artifacts
+.doc/
+docs/
+build/
+
 # Godot-specific ignores
 .import/
 export.cfg
@@ -17,3 +22,6 @@ mono_crash.*.json
 
 #android
 android/
+
+# GDExtension binaries are built from the Rust workspace.
+addons/rusty_core/bin/
