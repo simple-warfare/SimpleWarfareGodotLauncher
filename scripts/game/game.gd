@@ -50,9 +50,17 @@ func _update_entity_node(entity_id: int, entity: Dictionary) -> void:
 		float(entity.get("x", 0.0)),
 		float(entity.get("y", 0.0))
 	)
+	var body: ColorRect = unit_node.get_node("Body")
+	var radius := float(entity.get("radius", UNIT_SIZE.x * 0.5))
+	var diameter := max(radius * 2.0, 8.0)
+	body.size = Vector2(diameter, diameter)
+	body.position = -body.size * 0.5
+	body.color = _team_color(int(entity.get("team", 0)))
+	body.rotation_degrees = float(entity.get("facing_degrees", 0.0))
+
 	unit_node.get_node("Label").text = "%s\nhp:%s" % [
-		entity.get("kind", "unit"),
-		entity.get("health", 0),
+		entity.get("display_name", entity.get("kind", "unit")),
+		"%s/%s" % [entity.get("health", 0), entity.get("max_health", 0)],
 	]
 
 
@@ -79,6 +87,16 @@ func _get_or_create_entity_node(entity_id: int) -> Node2D:
 	_world.add_child(unit_node)
 	_entity_nodes[entity_id] = unit_node
 	return unit_node
+
+
+func _team_color(team: int) -> Color:
+	match team:
+		0:
+			return Color(0.25, 0.82, 0.55, 1.0)
+		1:
+			return Color(0.92, 0.32, 0.24, 1.0)
+		_:
+			return Color(0.50, 0.62, 0.95, 1.0)
 
 
 func _remove_missing_entities(alive_entity_ids: Dictionary) -> void:
