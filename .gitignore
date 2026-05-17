@@ -6,11 +6,18 @@
 .doc/
 docs/
 build/
+logs/
+*.log
+*.tmp
+*.bak
 
 # Godot-specific ignores
 .import/
 export.cfg
 export_credentials.cfg
+*.apk
+*.aab
+*.pck
 
 # Imported translations (automatically generated from CSV files)
 *.translation
