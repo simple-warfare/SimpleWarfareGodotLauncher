@@ -207,6 +207,8 @@ func _command_feedback(accepted: bool, status: String, rejected_reason: String, 
 	return {
 		"accepted": accepted,
 		"status": status,
+		"command_id": 0,
+		"sequence": 0,
 		"rejected_reason": rejected_reason,
 		"detail": detail,
 	}
