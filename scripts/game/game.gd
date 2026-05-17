@@ -142,16 +142,19 @@ func _handle_camera_movement(delta: float) -> void:
 	_camera.position += normalized_direction * CAMERA_MOVE_SPEED * delta / _camera.zoom.x
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if !_camera_initialized:
 		return
 	if event is InputEventMouseButton && event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_set_camera_zoom(_camera.zoom.x + CAMERA_ZOOM_STEP)
+			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_set_camera_zoom(_camera.zoom.x - CAMERA_ZOOM_STEP)
+			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			_select_entity_at_screen_position(event.position)
+			get_viewport().set_input_as_handled()
 
 
 func _set_camera_zoom(value: float) -> void:
@@ -184,8 +187,8 @@ func _update_entity_node(entity_id: int, entity: Dictionary) -> void:
 	]
 
 
-func _select_entity_at_screen_position(_screen_position: Vector2) -> void:
-	var world_position: Vector2 = _camera.get_global_mouse_position()
+func _select_entity_at_screen_position(screen_position: Vector2) -> void:
+	var world_position: Vector2 = _screen_to_world_position(screen_position)
 	var best_entity_id := 0
 	var best_distance: float = INF
 
@@ -203,6 +206,10 @@ func _select_entity_at_screen_position(_screen_position: Vector2) -> void:
 
 	_selected_entity_id = best_entity_id
 	_refresh_selection_visuals()
+
+
+func _screen_to_world_position(screen_position: Vector2) -> Vector2:
+	return get_viewport().get_canvas_transform().affine_inverse() * screen_position
 
 
 func _refresh_selection_visuals() -> void:
