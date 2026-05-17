@@ -1,12 +1,18 @@
 extends Control
 
 const UNIT_SIZE := Vector2(32.0, 32.0)
+const CAMERA_MOVE_SPEED := 520.0
+const CAMERA_ZOOM_STEP := 0.1
 
 @onready var _world: Node2D = %World
+@onready var _camera: Camera2D = %Camera
 @onready var _status_value: Label = %StatusValue
 
 var _entity_nodes: Dictionary = {}
 var _map_bounds: Line2D
+var _camera_initialized := false
+var _camera_min_zoom := 0.5
+var _camera_max_zoom := 2.0
 
 
 func _ready() -> void:
@@ -16,6 +22,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	RustBackend.update_runtime(delta)
 	_refresh_from_snapshot()
+	_handle_camera_movement(delta)
 
 
 func _refresh_from_snapshot() -> void:
@@ -75,6 +82,75 @@ func _refresh_map(map: Dictionary) -> void:
 		Vector2(0.0, map_size.y),
 		Vector2.ZERO,
 	])
+	_apply_camera_config(map, map_size)
+
+
+func _apply_camera_config(map: Dictionary, map_size: Vector2) -> void:
+	if _camera_initialized:
+		return
+
+	var camera: Dictionary = _map_camera(map)
+	_camera_min_zoom = float(camera.get("min_zoom", 0.5))
+	_camera_max_zoom = float(camera.get("max_zoom", 2.0))
+	if _camera_min_zoom <= 0.0:
+		_camera_min_zoom = 0.5
+	if _camera_max_zoom < _camera_min_zoom:
+		_camera_max_zoom = _camera_min_zoom
+
+	_camera.position = Vector2(
+		float(camera.get("start_x", map_size.x * 0.5)),
+		float(camera.get("start_y", map_size.y * 0.5))
+	)
+	_camera.zoom = Vector2.ONE
+	_camera.limit_left = 0
+	_camera.limit_top = 0
+	_camera.limit_right = int(map_size.x)
+	_camera.limit_bottom = int(map_size.y)
+	_camera_initialized = true
+
+
+func _map_camera(map: Dictionary) -> Dictionary:
+	var camera_value: Variant = map.get("camera", {})
+	if typeof(camera_value) != TYPE_DICTIONARY:
+		return {}
+	var camera: Dictionary = camera_value
+	return camera
+
+
+func _handle_camera_movement(delta: float) -> void:
+	if !_camera_initialized:
+		return
+
+	var direction := Vector2.ZERO
+	if Input.is_key_pressed(KEY_A) || Input.is_key_pressed(KEY_LEFT):
+		direction.x -= 1.0
+	if Input.is_key_pressed(KEY_D) || Input.is_key_pressed(KEY_RIGHT):
+		direction.x += 1.0
+	if Input.is_key_pressed(KEY_W) || Input.is_key_pressed(KEY_UP):
+		direction.y -= 1.0
+	if Input.is_key_pressed(KEY_S) || Input.is_key_pressed(KEY_DOWN):
+		direction.y += 1.0
+
+	if direction == Vector2.ZERO:
+		return
+
+	var normalized_direction: Vector2 = direction.normalized()
+	_camera.position += normalized_direction * CAMERA_MOVE_SPEED * delta / _camera.zoom.x
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if !_camera_initialized:
+		return
+	if event is InputEventMouseButton && event.pressed:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_set_camera_zoom(_camera.zoom.x + CAMERA_ZOOM_STEP)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_set_camera_zoom(_camera.zoom.x - CAMERA_ZOOM_STEP)
+
+
+func _set_camera_zoom(value: float) -> void:
+	var clamped_zoom: float = clampf(value, _camera_min_zoom, _camera_max_zoom)
+	_camera.zoom = Vector2(clamped_zoom, clamped_zoom)
 
 
 func _update_entity_node(entity_id: int, entity: Dictionary) -> void:
