@@ -220,5 +220,10 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 		"status": status,
 		"server_tick": 0,
 		"client_tick": 0,
+		"commands": {
+			"pending_count": 0,
+			"last_applied_command_id": 0,
+			"last_applied_sequence": 0,
+		},
 		"entities": [],
 	}

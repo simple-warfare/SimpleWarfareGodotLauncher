@@ -33,6 +33,7 @@ func _refresh_from_snapshot() -> void:
 	var snapshot := RustBackend.get_frontend_snapshot()
 	var entities: Array = snapshot.get("entities", [])
 	var map: Dictionary = _snapshot_map(snapshot)
+	var commands: Dictionary = _snapshot_commands(snapshot)
 	_refresh_map(map)
 
 	var alive_entity_ids := {}
@@ -50,7 +51,7 @@ func _refresh_from_snapshot() -> void:
 		_sync_move_target_marker(entity_id, entity)
 
 	_remove_missing_entities(alive_entity_ids)
-	_status_value.text = "map=%s mode=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s" % [
+	_status_value.text = "map=%s mode=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s commands=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
 		snapshot.get("status", "unknown"),
@@ -59,6 +60,7 @@ func _refresh_from_snapshot() -> void:
 		entities.size(),
 		_selected_entity_summary(),
 		_movement_command_summary(),
+		_command_lifecycle_summary(commands),
 	]
 
 
@@ -68,6 +70,14 @@ func _snapshot_map(snapshot: Dictionary) -> Dictionary:
 		return {}
 	var map: Dictionary = map_value
 	return map
+
+
+func _snapshot_commands(snapshot: Dictionary) -> Dictionary:
+	var commands_value: Variant = snapshot.get("commands", {})
+	if typeof(commands_value) != TYPE_DICTIONARY:
+		return {}
+	var commands: Dictionary = commands_value
+	return commands
 
 
 func _refresh_map(map: Dictionary) -> void:
@@ -280,6 +290,14 @@ func _movement_command_summary() -> String:
 	if moving_count == 0:
 		return "none"
 	return "rust_snapshot:%s" % moving_count
+
+
+func _command_lifecycle_summary(commands: Dictionary) -> String:
+	return "pending:%s applied:%s/%s" % [
+		commands.get("pending_count", 0),
+		commands.get("last_applied_command_id", 0),
+		commands.get("last_applied_sequence", 0),
+	]
 
 
 func _get_or_create_entity_node(entity_id: int) -> Node2D:
