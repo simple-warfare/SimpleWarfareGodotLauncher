@@ -4,9 +4,9 @@ compatibility_minimum = "4.6"
 reloadable = false
 
 [libraries]
-windows.debug.x86_64 = "res://addons/rusty_core/bin/windows/gdextension.dll"
-windows.release.x86_64 = "res://addons/rusty_core/bin/windows/gdextension.dll"
-linux.debug.x86_64 = "res://addons/rusty_core/bin/linux/libgdextension.so"
-linux.release.x86_64 = "res://addons/rusty_core/bin/linux/libgdextension.so"
+windows.debug.x86_64 = "res://addons/rusty_core/bin/windows/x86_64/gdextension.dll"
+windows.release.x86_64 = "res://addons/rusty_core/bin/windows/x86_64/gdextension.dll"
+linux.debug.x86_64 = "res://addons/rusty_core/bin/linux/x86_64/libgdextension.so"
+linux.release.x86_64 = "res://addons/rusty_core/bin/linux/x86_64/libgdextension.so"
 android.debug.arm64 = "res://addons/rusty_core/bin/android/arm64/libgdextension.so"
 android.release.arm64 = "res://addons/rusty_core/bin/android/arm64/libgdextension.so"
