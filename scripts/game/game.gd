@@ -4,7 +4,6 @@ const UNIT_SIZE := Vector2(32.0, 32.0)
 const CAMERA_MOVE_SPEED := 520.0
 const CAMERA_ZOOM_STEP := 0.1
 const SELECTION_PADDING := 6.0
-const MOVE_TARGET_ARRIVE_DISTANCE := 4.0
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -12,7 +11,6 @@ const MOVE_TARGET_ARRIVE_DISTANCE := 4.0
 
 var _entity_nodes: Dictionary = {}
 var _entity_snapshots: Dictionary = {}
-var _move_targets: Dictionary = {}
 var _move_target_markers: Dictionary = {}
 var _selected_entity_id := 0
 var _map_bounds: Line2D
@@ -49,7 +47,7 @@ func _refresh_from_snapshot() -> void:
 		alive_entity_ids[entity_id] = true
 		_entity_snapshots[entity_id] = entity
 		_update_entity_node(entity_id, entity)
-		_clear_arrived_move_target(entity_id, entity)
+		_sync_move_target_marker(entity_id, entity)
 
 	_remove_missing_entities(alive_entity_ids)
 	_status_value.text = "map=%s mode=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s" % [
@@ -220,14 +218,26 @@ func _issue_move_command(screen_position: Vector2) -> void:
 		push_warning("Rust move command failed: %s %s" % [result, RustBackend.get_last_error_detail()])
 		return
 
-	_move_targets[_selected_entity_id] = target_position
-	_update_or_create_move_target_marker(_selected_entity_id, target_position)
-
 
 func _entity_snapshot_position(entity: Dictionary) -> Vector2:
 	return Vector2(
 		float(entity.get("x", 0.0)),
 		float(entity.get("y", 0.0))
+	)
+
+
+func _entity_move_target(entity: Dictionary) -> Dictionary:
+	var move_target_value: Variant = entity.get("move_target", {})
+	if typeof(move_target_value) != TYPE_DICTIONARY:
+		return {}
+	var move_target: Dictionary = move_target_value
+	return move_target
+
+
+func _move_target_position(move_target: Dictionary) -> Vector2:
+	return Vector2(
+		float(move_target.get("x", 0.0)),
+		float(move_target.get("y", 0.0))
 	)
 
 
@@ -256,9 +266,17 @@ func _selected_entity_summary() -> String:
 
 
 func _movement_command_summary() -> String:
-	if _move_targets.is_empty():
+	var moving_count := 0
+	for entity_value in _entity_snapshots.values():
+		if typeof(entity_value) != TYPE_DICTIONARY:
+			continue
+		var entity: Dictionary = entity_value
+		if bool(entity.get("is_moving", false)):
+			moving_count += 1
+
+	if moving_count == 0:
 		return "none"
-	return "rust_command:%s" % _move_targets.size()
+	return "rust_snapshot:%s" % moving_count
 
 
 func _get_or_create_entity_node(entity_id: int) -> Node2D:
@@ -328,16 +346,13 @@ func _update_or_create_move_target_marker(entity_id: int, target_position: Vecto
 	marker.position = target_position
 
 
-func _clear_arrived_move_target(entity_id: int, entity: Dictionary) -> void:
-	if !_move_targets.has(entity_id):
+func _sync_move_target_marker(entity_id: int, entity: Dictionary) -> void:
+	var move_target := _entity_move_target(entity)
+	if move_target.is_empty():
+		_remove_move_target_marker(entity_id)
 		return
 
-	var target_position: Vector2 = _move_targets[entity_id]
-	if _entity_snapshot_position(entity).distance_to(target_position) > MOVE_TARGET_ARRIVE_DISTANCE:
-		return
-
-	_move_targets.erase(entity_id)
-	_remove_move_target_marker(entity_id)
+	_update_or_create_move_target_marker(entity_id, _move_target_position(move_target))
 
 
 func _remove_move_target_marker(entity_id: int) -> void:
@@ -377,7 +392,6 @@ func _remove_missing_entities(alive_entity_ids: Dictionary) -> void:
 		var node: Node = _entity_nodes[entity_id]
 		_entity_nodes.erase(entity_id)
 		_entity_snapshots.erase(entity_id)
-		_move_targets.erase(entity_id)
 		_remove_move_target_marker(int(entity_id))
 		if int(entity_id) == _selected_entity_id:
 			_selected_entity_id = 0
