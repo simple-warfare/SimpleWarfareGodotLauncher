@@ -157,43 +157,35 @@ func update_runtime(delta_seconds: float) -> String:
 
 
 func issue_move_command(entity_id: int, target_position: Vector2) -> Dictionary:
-	if !_available:
-		return _command_feedback(false, "rejected", "rusty_core_unavailable", "RustyCore class is not available.")
-
-	if get_status() != "running":
-		return _command_feedback(false, "rejected", "not_running", "Rust runtime is not running.")
-
-	# 跨语言边界只传基础数值，避免 Godot Vector2 泄漏进 Rust 核心接口。
-	var feedback = _rusty_core.call(
-		"issue_move_command",
-		entity_id,
-		target_position.x,
-		target_position.y
-	)
-	if typeof(feedback) != TYPE_DICTIONARY:
-		return _command_feedback(false, "rejected", "invalid_command_feedback", "Rust returned an invalid command feedback value.")
-
-	var command_feedback: Dictionary = feedback
-	_last_result = str(command_feedback.get("status", "rejected"))
-	_last_error_detail = str(command_feedback.get("detail", ""))
-	return command_feedback
+	return submit_player_command({
+		"type": "move_entity",
+		"entity_id": entity_id,
+		"target_x": target_position.x,
+		"target_y": target_position.y,
+	})
 
 
 func issue_stop_command(entity_id: int) -> Dictionary:
+	return submit_player_command({
+		"type": "stop_entity",
+		"entity_id": entity_id,
+	})
+
+
+func submit_player_command(command: Dictionary) -> Dictionary:
 	if !_available:
 		return _command_feedback(false, "rejected", "rusty_core_unavailable", "RustyCore class is not available.")
 
 	if get_status() != "running":
 		return _command_feedback(false, "rejected", "not_running", "Rust runtime is not running.")
 
-	var feedback = _rusty_core.call("issue_stop_command", entity_id)
+	# 跨语言边界只传基础 Dictionary，避免 Godot 对象泄漏进 Rust 核心接口。
+	var feedback = _rusty_core.call("submit_player_command", command)
 	if typeof(feedback) != TYPE_DICTIONARY:
 		return _command_feedback(false, "rejected", "invalid_command_feedback", "Rust returned an invalid command feedback value.")
 
 	var command_feedback: Dictionary = feedback
-	_last_result = str(command_feedback.get("status", "rejected"))
-	_last_error_detail = str(command_feedback.get("detail", ""))
-	return command_feedback
+	return _store_command_feedback(command_feedback)
 
 
 func _call_runtime_mode(method_name: String) -> String:
@@ -229,6 +221,12 @@ func _command_feedback(accepted: bool, status: String, rejected_reason: String, 
 		"rejected_reason": rejected_reason,
 		"detail": detail,
 	}
+
+
+func _store_command_feedback(feedback: Dictionary) -> Dictionary:
+	_last_result = str(feedback.get("status", "rejected"))
+	_last_error_detail = str(feedback.get("detail", ""))
+	return feedback
 
 
 func _empty_frontend_snapshot(status: String) -> Dictionary:
