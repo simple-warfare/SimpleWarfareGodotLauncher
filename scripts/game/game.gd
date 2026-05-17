@@ -7,6 +7,7 @@ const SELECTION_PADDING := 6.0
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
+@onready var _hud: Control = $HudLayer/Hud
 @onready var _status_value: Label = %StatusValue
 @onready var _stop_command_button: Button = %StopCommandButton
 
@@ -158,10 +159,12 @@ func _handle_camera_movement(delta: float) -> void:
 	_camera.position += normalized_direction * CAMERA_MOVE_SPEED * delta / _camera.zoom.x
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if !_camera_initialized:
 		return
 	if event is InputEventMouseButton && event.pressed:
+		if _is_over_hud(event.position):
+			return
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_set_camera_zoom(_camera.zoom.x + CAMERA_ZOOM_STEP)
 			get_viewport().set_input_as_handled()
@@ -179,6 +182,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _set_camera_zoom(value: float) -> void:
 	var clamped_zoom: float = clampf(value, _camera_min_zoom, _camera_max_zoom)
 	_camera.zoom = Vector2(clamped_zoom, clamped_zoom)
+
+
+func _is_over_hud(screen_position: Vector2) -> bool:
+	return _hud.get_global_rect().has_point(screen_position)
 
 
 func _update_entity_node(entity_id: int, entity: Dictionary) -> void:
