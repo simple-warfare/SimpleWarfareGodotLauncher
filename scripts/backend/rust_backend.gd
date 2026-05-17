@@ -179,6 +179,23 @@ func issue_move_command(entity_id: int, target_position: Vector2) -> Dictionary:
 	return command_feedback
 
 
+func issue_stop_command(entity_id: int) -> Dictionary:
+	if !_available:
+		return _command_feedback(false, "rejected", "rusty_core_unavailable", "RustyCore class is not available.")
+
+	if get_status() != "running":
+		return _command_feedback(false, "rejected", "not_running", "Rust runtime is not running.")
+
+	var feedback = _rusty_core.call("issue_stop_command", entity_id)
+	if typeof(feedback) != TYPE_DICTIONARY:
+		return _command_feedback(false, "rejected", "invalid_command_feedback", "Rust returned an invalid command feedback value.")
+
+	var command_feedback: Dictionary = feedback
+	_last_result = str(command_feedback.get("status", "rejected"))
+	_last_error_detail = str(command_feedback.get("detail", ""))
+	return command_feedback
+
+
 func _call_runtime_mode(method_name: String) -> String:
 	if !_available:
 		_last_result = "rusty_core_unavailable"

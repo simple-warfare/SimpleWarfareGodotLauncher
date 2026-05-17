@@ -8,6 +8,7 @@ const SELECTION_PADDING := 6.0
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
 @onready var _status_value: Label = %StatusValue
+@onready var _stop_command_button: Button = %StopCommandButton
 
 var _entity_nodes: Dictionary = {}
 var _entity_snapshots: Dictionary = {}
@@ -20,6 +21,7 @@ var _camera_max_zoom := 2.0
 
 
 func _ready() -> void:
+	_stop_command_button.pressed.connect(_issue_stop_command)
 	_refresh_from_snapshot()
 
 
@@ -51,6 +53,7 @@ func _refresh_from_snapshot() -> void:
 		_sync_move_target_marker(entity_id, entity)
 
 	_remove_missing_entities(alive_entity_ids)
+	_refresh_command_controls()
 	_status_value.text = "map=%s mode=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s commands=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
@@ -216,6 +219,7 @@ func _select_entity_at_screen_position(screen_position: Vector2) -> void:
 
 	_selected_entity_id = best_entity_id
 	_refresh_selection_visuals()
+	_refresh_command_controls()
 
 
 func _issue_move_command(screen_position: Vector2) -> void:
@@ -230,6 +234,21 @@ func _issue_move_command(screen_position: Vector2) -> void:
 			feedback.get("detail", ""),
 		])
 		return
+
+
+func _issue_stop_command() -> void:
+	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+		return
+
+	var feedback := RustBackend.issue_stop_command(_selected_entity_id)
+	if !bool(feedback.get("accepted", false)):
+		push_warning("Rust stop command rejected: %s %s" % [
+			feedback.get("rejected_reason", "unknown"),
+			feedback.get("detail", ""),
+		])
+		return
+
+	_stop_command_button.disabled = true
 
 
 func _entity_snapshot_position(entity: Dictionary) -> Vector2:
@@ -263,6 +282,18 @@ func _refresh_selection_visuals() -> void:
 		var node: Node2D = _entity_nodes[entity_id]
 		var selection: Line2D = node.get_node("Selection")
 		selection.visible = int(entity_id) == _selected_entity_id
+
+
+func _refresh_command_controls() -> void:
+	_stop_command_button.disabled = !_selected_entity_can_stop()
+
+
+func _selected_entity_can_stop() -> bool:
+	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+		return false
+
+	var entity: Dictionary = _entity_snapshots[_selected_entity_id]
+	return bool(entity.get("is_moving", false))
 
 
 func _selected_entity_summary() -> String:

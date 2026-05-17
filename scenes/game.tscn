@@ -44,9 +44,21 @@ layout_mode = 1
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 620.0
-offset_bottom = 100.0
+offset_bottom = 128.0
 
-[node name="StatusValue" type="Label" parent="HudLayer/Hud"]
+[node name="Content" type="VBoxContainer" parent="HudLayer/Hud"]
+layout_mode = 2
+
+[node name="StatusValue" type="Label" parent="HudLayer/Hud/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Waiting for snapshot"
+
+[node name="CommandBar" type="HBoxContainer" parent="HudLayer/Hud/Content"]
+layout_mode = 2
+
+[node name="StopCommandButton" type="Button" parent="HudLayer/Hud/Content/CommandBar"]
+unique_name_in_owner = true
+layout_mode = 2
+disabled = true
+text = "Stop"
