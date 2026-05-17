@@ -213,9 +213,12 @@ func _issue_move_command(screen_position: Vector2) -> void:
 		return
 
 	var target_position: Vector2 = _screen_to_world_position(screen_position)
-	var result := RustBackend.issue_move_command(_selected_entity_id, target_position)
-	if result != "ok":
-		push_warning("Rust move command failed: %s %s" % [result, RustBackend.get_last_error_detail()])
+	var feedback := RustBackend.issue_move_command(_selected_entity_id, target_position)
+	if !bool(feedback.get("accepted", false)):
+		push_warning("Rust move command rejected: %s %s" % [
+			feedback.get("rejected_reason", "unknown"),
+			feedback.get("detail", ""),
+		])
 		return
 
 

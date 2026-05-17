@@ -156,26 +156,27 @@ func update_runtime(delta_seconds: float) -> String:
 	return _last_result
 
 
-func issue_move_command(entity_id: int, target_position: Vector2) -> String:
+func issue_move_command(entity_id: int, target_position: Vector2) -> Dictionary:
 	if !_available:
-		_last_result = "rusty_core_unavailable"
-		_last_error_detail = "RustyCore class is not available."
-		return _last_result
+		return _command_feedback(false, "rejected", "rusty_core_unavailable", "RustyCore class is not available.")
 
 	if get_status() != "running":
-		_last_result = "not_running"
-		_last_error_detail = "Rust runtime is not running."
-		return _last_result
+		return _command_feedback(false, "rejected", "not_running", "Rust runtime is not running.")
 
 	# 跨语言边界只传基础数值，避免 Godot Vector2 泄漏进 Rust 核心接口。
-	_last_result = str(_rusty_core.call(
+	var feedback = _rusty_core.call(
 		"issue_move_command",
 		entity_id,
 		target_position.x,
 		target_position.y
-	))
-	_refresh_error_detail()
-	return _last_result
+	)
+	if typeof(feedback) != TYPE_DICTIONARY:
+		return _command_feedback(false, "rejected", "invalid_command_feedback", "Rust returned an invalid command feedback value.")
+
+	var command_feedback: Dictionary = feedback
+	_last_result = str(command_feedback.get("status", "rejected"))
+	_last_error_detail = str(command_feedback.get("detail", ""))
+	return command_feedback
 
 
 func _call_runtime_mode(method_name: String) -> String:
@@ -198,6 +199,17 @@ func _refresh_error_detail() -> void:
 		_last_error_detail = ""
 		return
 	_last_error_detail = str(_rusty_core.call("get_last_error_detail"))
+
+
+func _command_feedback(accepted: bool, status: String, rejected_reason: String, detail: String) -> Dictionary:
+	_last_result = status
+	_last_error_detail = detail
+	return {
+		"accepted": accepted,
+		"status": status,
+		"rejected_reason": rejected_reason,
+		"detail": detail,
+	}
 
 
 func _empty_frontend_snapshot(status: String) -> Dictionary:
