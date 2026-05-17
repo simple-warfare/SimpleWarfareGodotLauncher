@@ -156,6 +156,28 @@ func update_runtime(delta_seconds: float) -> String:
 	return _last_result
 
 
+func issue_move_command(entity_id: int, target_position: Vector2) -> String:
+	if !_available:
+		_last_result = "rusty_core_unavailable"
+		_last_error_detail = "RustyCore class is not available."
+		return _last_result
+
+	if get_status() != "running":
+		_last_result = "not_running"
+		_last_error_detail = "Rust runtime is not running."
+		return _last_result
+
+	# 跨语言边界只传基础数值，避免 Godot Vector2 泄漏进 Rust 核心接口。
+	_last_result = str(_rusty_core.call(
+		"issue_move_command",
+		entity_id,
+		target_position.x,
+		target_position.y
+	))
+	_refresh_error_detail()
+	return _last_result
+
+
 func _call_runtime_mode(method_name: String) -> String:
 	if !_available:
 		_last_result = "rusty_core_unavailable"

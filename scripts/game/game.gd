@@ -4,8 +4,7 @@ const UNIT_SIZE := Vector2(32.0, 32.0)
 const CAMERA_MOVE_SPEED := 520.0
 const CAMERA_ZOOM_STEP := 0.1
 const SELECTION_PADDING := 6.0
-const TEMP_FRONTEND_MOVE_SPEED := 95.0
-const TEMP_FRONTEND_ARRIVE_DISTANCE := 4.0
+const MOVE_TARGET_ARRIVE_DISTANCE := 4.0
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -13,7 +12,6 @@ const TEMP_FRONTEND_ARRIVE_DISTANCE := 4.0
 
 var _entity_nodes: Dictionary = {}
 var _entity_snapshots: Dictionary = {}
-var _frontend_positions: Dictionary = {}
 var _move_targets: Dictionary = {}
 var _move_target_markers: Dictionary = {}
 var _selected_entity_id := 0
@@ -30,7 +28,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	RustBackend.update_runtime(delta)
 	_refresh_from_snapshot()
-	_update_temporary_frontend_movement(delta)
 	_handle_camera_movement(delta)
 
 
@@ -52,9 +49,10 @@ func _refresh_from_snapshot() -> void:
 		alive_entity_ids[entity_id] = true
 		_entity_snapshots[entity_id] = entity
 		_update_entity_node(entity_id, entity)
+		_clear_arrived_move_target(entity_id, entity)
 
 	_remove_missing_entities(alive_entity_ids)
-	_status_value.text = "map=%s mode=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s temp_move=%s" % [
+	_status_value.text = "map=%s mode=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
 		snapshot.get("status", "unknown"),
@@ -62,7 +60,7 @@ func _refresh_from_snapshot() -> void:
 		snapshot.get("client_tick", 0),
 		entities.size(),
 		_selected_entity_summary(),
-		_temporary_movement_summary(),
+		_movement_command_summary(),
 	]
 
 
@@ -163,7 +161,7 @@ func _input(event: InputEvent) -> void:
 			_select_entity_at_screen_position(event.position)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			_issue_temporary_frontend_move(event.position)
+			_issue_move_command(event.position)
 			get_viewport().set_input_as_handled()
 
 
@@ -174,7 +172,7 @@ func _set_camera_zoom(value: float) -> void:
 
 func _update_entity_node(entity_id: int, entity: Dictionary) -> void:
 	var unit_node := _get_or_create_entity_node(entity_id)
-	unit_node.position = _entity_display_position(entity_id, entity)
+	unit_node.position = _entity_snapshot_position(entity)
 	var body: ColorRect = unit_node.get_node("Body")
 	var radius: float = float(entity.get("radius", UNIT_SIZE.x * 0.5))
 	var diameter: float = max(radius * 2.0, 8.0)
@@ -201,7 +199,7 @@ func _select_entity_at_screen_position(screen_position: Vector2) -> void:
 
 	for entity_id in _entity_snapshots.keys():
 		var entity: Dictionary = _entity_snapshots[entity_id]
-		var entity_position: Vector2 = _entity_display_position(int(entity_id), entity)
+		var entity_position: Vector2 = _entity_snapshot_position(entity)
 		var radius: float = float(entity.get("radius", UNIT_SIZE.x * 0.5)) + SELECTION_PADDING
 		var distance: float = world_position.distance_to(entity_position)
 		if distance <= radius && distance < best_distance:
@@ -212,55 +210,25 @@ func _select_entity_at_screen_position(screen_position: Vector2) -> void:
 	_refresh_selection_visuals()
 
 
-func _issue_temporary_frontend_move(screen_position: Vector2) -> void:
+func _issue_move_command(screen_position: Vector2) -> void:
 	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
 		return
 
 	var target_position: Vector2 = _screen_to_world_position(screen_position)
-	var selected_entity: Dictionary = _entity_snapshots[_selected_entity_id]
-	_frontend_positions[_selected_entity_id] = _entity_display_position(_selected_entity_id, selected_entity)
+	var result := RustBackend.issue_move_command(_selected_entity_id, target_position)
+	if result != "ok":
+		push_warning("Rust move command failed: %s %s" % [result, RustBackend.get_last_error_detail()])
+		return
+
 	_move_targets[_selected_entity_id] = target_position
 	_update_or_create_move_target_marker(_selected_entity_id, target_position)
 
 
-func _update_temporary_frontend_movement(delta: float) -> void:
-	for entity_id in _move_targets.keys():
-		if !_entity_snapshots.has(entity_id):
-			continue
-
-		var entity: Dictionary = _entity_snapshots[entity_id]
-		var current_position: Vector2 = _entity_display_position(int(entity_id), entity)
-		var target_position: Vector2 = _move_targets[entity_id]
-		var to_target: Vector2 = target_position - current_position
-		var distance: float = to_target.length()
-
-		if distance <= TEMP_FRONTEND_ARRIVE_DISTANCE:
-			_frontend_positions[entity_id] = target_position
-			_move_targets.erase(entity_id)
-			_remove_move_target_marker(int(entity_id))
-			_apply_frontend_position_to_node(int(entity_id), target_position)
-			continue
-
-		var step_distance: float = minf(TEMP_FRONTEND_MOVE_SPEED * delta, distance)
-		var next_position: Vector2 = current_position + to_target.normalized() * step_distance
-		_frontend_positions[entity_id] = next_position
-		_apply_frontend_position_to_node(int(entity_id), next_position)
-
-
-func _entity_display_position(entity_id: int, entity: Dictionary) -> Vector2:
-	if _frontend_positions.has(entity_id):
-		return _frontend_positions[entity_id]
+func _entity_snapshot_position(entity: Dictionary) -> Vector2:
 	return Vector2(
 		float(entity.get("x", 0.0)),
 		float(entity.get("y", 0.0))
 	)
-
-
-func _apply_frontend_position_to_node(entity_id: int, position: Vector2) -> void:
-	if !_entity_nodes.has(entity_id):
-		return
-	var node: Node2D = _entity_nodes[entity_id]
-	node.position = position
 
 
 func _screen_to_world_position(screen_position: Vector2) -> Vector2:
@@ -287,10 +255,10 @@ func _selected_entity_summary() -> String:
 	]
 
 
-func _temporary_movement_summary() -> String:
+func _movement_command_summary() -> String:
 	if _move_targets.is_empty():
 		return "none"
-	return "frontend_only:%s" % _move_targets.size()
+	return "rust_command:%s" % _move_targets.size()
 
 
 func _get_or_create_entity_node(entity_id: int) -> Node2D:
@@ -360,6 +328,18 @@ func _update_or_create_move_target_marker(entity_id: int, target_position: Vecto
 	marker.position = target_position
 
 
+func _clear_arrived_move_target(entity_id: int, entity: Dictionary) -> void:
+	if !_move_targets.has(entity_id):
+		return
+
+	var target_position: Vector2 = _move_targets[entity_id]
+	if _entity_snapshot_position(entity).distance_to(target_position) > MOVE_TARGET_ARRIVE_DISTANCE:
+		return
+
+	_move_targets.erase(entity_id)
+	_remove_move_target_marker(entity_id)
+
+
 func _remove_move_target_marker(entity_id: int) -> void:
 	if !_move_target_markers.has(entity_id):
 		return
@@ -397,7 +377,6 @@ func _remove_missing_entities(alive_entity_ids: Dictionary) -> void:
 		var node: Node = _entity_nodes[entity_id]
 		_entity_nodes.erase(entity_id)
 		_entity_snapshots.erase(entity_id)
-		_frontend_positions.erase(entity_id)
 		_move_targets.erase(entity_id)
 		_remove_move_target_marker(int(entity_id))
 		if int(entity_id) == _selected_entity_id:
