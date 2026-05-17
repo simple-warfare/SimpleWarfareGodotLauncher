@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - deltawater
+  pull_request:
+    branches:
+      - main
+      - master
+      - deltawater
+
+jobs:
+  repository-checks:
+    name: Repository checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required project files
+        shell: bash
+        run: |
+          test -f project.godot
+          test -f addons/rusty_core/rusty_core.gdextension
+          test -d assets/content_packages/official_base_game
+          test -f assets/content_packages/official_base_game/manifest.toml
+          test -f scenes/bootstrap.tscn
+          test -f scripts/bootstrap/bootstrap.gd
+          test -f scripts/backend/rust_backend.gd
+
+      - name: Check committed text does not contain local Windows paths
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          import sys
+
+          pattern = re.compile(r"[A-Za-z]:[\\/]|Users[\\/]|Program[\\/]")
+          skipped_dirs = {".git", ".github"}
+          text_suffixes = {".md", ".gd", ".tscn", ".tres", ".cfg", ".toml", ".gdextension", ".import"}
+          files = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+          hits = []
+
+          for raw_path in files:
+              path = Path(raw_path)
+              if any(part in skipped_dirs for part in path.parts):
+                  continue
+              if path.suffix not in text_suffixes:
+                  continue
+              text = path.read_text(encoding="utf-8", errors="ignore")
+              for line_no, line in enumerate(text.splitlines(), 1):
+                  if pattern.search(line):
+                      hits.append(f"{raw_path}:{line_no}: {line}")
+
+          if hits:
+              print("Found local Windows path references:")
+              print("\n".join(hits))
+              sys.exit(1)
+          PY
