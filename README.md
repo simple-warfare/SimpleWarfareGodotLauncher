@@ -2,20 +2,16 @@
 
 这是 `Simple Warfare` 的 Godot 前端工程。
 
-当前工程已经从旧启动器原型中清理出来，只保留新的启动结构、Rust GDExtension 接入、基础前端资源和必要文档。旧项目完整备份位于：
+当前工程已经从旧启动器原型中清理出来，只保留新的启动结构、Rust GDExtension 接入、基础前端资源和必要文档。
 
-```text
-D:\Program\_SimpleWarfareGodotLauncher
-```
-
-如果后续需要参考旧 UI、旧场景或旧脚本，应该从备份目录读取，不应把旧 `GLOBALS / Backend / Adaptor` 体系重新搬回当前工程。
+如果后续需要参考旧 UI、旧场景或旧脚本，应该通过 Git 历史或团队约定的历史备份读取，不应把旧 `GLOBALS / Backend / Adaptor` 体系重新搬回当前工程。
 
 ## 当前技术栈
 
 - 引擎：`Godot 4.6`
 - 脚本：`GDScript`
 - Rust 接入：`GDExtension`
-- Rust 核心工程：`D:\Program\RustyWarfare`
+- Rust 核心工程：`simple-warfare/rusty_warfare` 仓库
 
 明确不采用：
 
@@ -76,11 +72,11 @@ user://assets
 user://mods
 ```
 
-Windows 下通常对应：
+实际物理路径由 Godot 按平台映射，代码中不要硬编码本机路径。
 
 ```text
-C:\Users\<User>\AppData\Roaming\SimpleWarfareGodotLauncher\assets
-C:\Users\<User>\AppData\Roaming\SimpleWarfareGodotLauncher\mods
+user://assets
+user://mods
 ```
 
 ## 当前已完成
@@ -106,11 +102,7 @@ C:\Users\<User>\AppData\Roaming\SimpleWarfareGodotLauncher\mods
 
 ## Rust 核心
 
-Rust 核心工程位于：
-
-```text
-D:\Program\RustyWarfare
-```
+Rust 核心工程位于 `simple-warfare/rusty_warfare` 仓库。
 
 ## 建议阅读顺序
 
