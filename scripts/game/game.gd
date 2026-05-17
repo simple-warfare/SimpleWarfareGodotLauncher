@@ -51,8 +51,8 @@ func _update_entity_node(entity_id: int, entity: Dictionary) -> void:
 		float(entity.get("y", 0.0))
 	)
 	var body: ColorRect = unit_node.get_node("Body")
-	var radius := float(entity.get("radius", UNIT_SIZE.x * 0.5))
-	var diameter := max(radius * 2.0, 8.0)
+	var radius: float = float(entity.get("radius", UNIT_SIZE.x * 0.5))
+	var diameter: float = max(radius * 2.0, 8.0)
 	body.size = Vector2(diameter, diameter)
 	body.position = -body.size * 0.5
 	body.color = _team_color(int(entity.get("team", 0)))
