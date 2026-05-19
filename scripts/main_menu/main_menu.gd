@@ -1,10 +1,12 @@
 extends Control
 
 const DEFAULT_SERVER_ADDR := "127.0.0.1:5888"
+const JOIN_TIMEOUT_SECONDS := 8.0
 
 @onready var _status_value: Label = %StatusValue
 @onready var _singleplayer_button: Button = %SingleplayerButton
 @onready var _host_button: Button = %HostButton
+@onready var _join_address_input: LineEdit = %JoinAddressInput
 @onready var _join_button: Button = %JoinButton
 @onready var _mods_button: Button = %ModsButton
 @onready var _settings_button: Button = %SettingsButton
@@ -12,9 +14,12 @@ const DEFAULT_SERVER_ADDR := "127.0.0.1:5888"
 
 var _waiting_for_join_snapshot := false
 var _join_server_addr := ""
+var _join_wait_seconds := 0.0
+var _join_timed_out := false
 
 
 func _ready() -> void:
+	_join_address_input.text = DEFAULT_SERVER_ADDR
 	_singleplayer_button.pressed.connect(_start_singleplayer)
 	_host_button.pressed.connect(_start_host)
 	_join_button.pressed.connect(_join_remote_game)
@@ -30,6 +35,7 @@ func _process(delta: float) -> void:
 		return
 
 	RustBackend.update_runtime(delta)
+	_update_join_wait(delta)
 	_refresh_status()
 	_route_join_client_when_ready()
 
@@ -63,12 +69,19 @@ func _refresh_status() -> void:
 		first_entity_text,
 	]
 
+	var error_detail := str(RustBackend.get_last_error_detail())
+	if !error_detail.is_empty():
+		_status_value.text += "\nError: %s" % error_detail
+
 	if _waiting_for_join_snapshot:
-		_status_value.text += "\nJoin: waiting for server snapshot from %s" % _join_server_addr
+		if _join_timed_out:
+			_status_value.text += "\nJoin: no snapshot from %s after %.1fs; still waiting" % [_join_server_addr, _join_wait_seconds]
+		else:
+			_status_value.text += "\nJoin: waiting for server snapshot from %s (%.1fs)" % [_join_server_addr, _join_wait_seconds]
 
 
 func _start_singleplayer() -> void:
-	_waiting_for_join_snapshot = false
+	_clear_join_wait()
 	var result := RustBackend.start_singleplayer()
 	if result == "ok":
 		AppState.launch_mode = AppState.LaunchMode.SINGLEPLAYER
@@ -78,7 +91,7 @@ func _start_singleplayer() -> void:
 
 
 func _start_host() -> void:
-	_waiting_for_join_snapshot = false
+	_clear_join_wait()
 	var result := RustBackend.start_host()
 	if result == "ok":
 		AppState.launch_mode = AppState.LaunchMode.HOST
@@ -88,14 +101,30 @@ func _start_host() -> void:
 
 
 func _join_remote_game() -> void:
-	var result := RustBackend.start_client(DEFAULT_SERVER_ADDR)
+	var server_addr := _join_address_input.text.strip_edges()
+	if server_addr.is_empty():
+		server_addr = DEFAULT_SERVER_ADDR
+		_join_address_input.text = server_addr
+
+	var result := RustBackend.start_client(server_addr)
 	if result == "ok":
 		AppState.launch_mode = AppState.LaunchMode.CLIENT
-		_join_server_addr = DEFAULT_SERVER_ADDR
+		_join_server_addr = server_addr
 		_waiting_for_join_snapshot = true
+		_join_wait_seconds = 0.0
+		_join_timed_out = false
 	else:
-		_waiting_for_join_snapshot = false
+		_clear_join_wait()
 	_refresh_status()
+
+
+func _update_join_wait(delta: float) -> void:
+	if !_waiting_for_join_snapshot:
+		return
+
+	_join_wait_seconds += delta
+	if _join_wait_seconds >= JOIN_TIMEOUT_SECONDS:
+		_join_timed_out = true
 
 
 func _route_join_client_when_ready() -> void:
@@ -106,8 +135,15 @@ func _route_join_client_when_ready() -> void:
 	if int(snapshot.get("server_tick", 0)) <= 0:
 		return
 
-	_waiting_for_join_snapshot = false
+	_clear_join_wait()
 	SceneRouter.go_to_game()
+
+
+func _clear_join_wait() -> void:
+	_waiting_for_join_snapshot = false
+	_join_server_addr = ""
+	_join_wait_seconds = 0.0
+	_join_timed_out = false
 
 
 func _open_mods() -> void:

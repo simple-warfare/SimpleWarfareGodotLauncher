@@ -86,7 +86,8 @@ user://mods
 - 启动流程能初始化 Rust 和运行时资源目录。
 - 新主菜单的单人 / 主机 / 加入按钮已能调用 Rust runtime mode API。
 - 单人模式和主机模式启动成功后会进入 `game.tscn`。
-- 加入远程房间会启动 UDP client，并在收到首个 server snapshot 后进入 `game.tscn`。
+- 加入远程房间可输入 server 地址，会启动 UDP client，并在收到首个 server snapshot 后进入 `game.tscn`。
+- Join 等待期间会显示目标地址、等待时间和超时提示；Host 启动失败会显示 Rust 错误详情。
 - 单人模式和主机模式都会通过 Godot `_process(delta)` 驱动 Rust update，并显示结构化 `Dictionary` frontend snapshot。
 - frontend snapshot 已接入 Rust server ECS，主菜单和游戏场景可显示地图、单位、移动目标和命令状态。
 - 游戏场景已支持基础镜头、单位选择、移动命令和停止命令。
@@ -96,7 +97,7 @@ user://mods
 ## 当前未完成
 
 - 新主菜单还是安全占位入口，不是最终 UI。
-- 加入远程房间仍缺少地址输入、连接超时提示和房间 UI。
+- 加入远程房间仍缺少房间 UI、连接取消 / 重试流程和更完整的网络错误恢复。
 - 设置页、模组页、房间页、地图页需要重新按新结构实现。
 - 游戏场景目前仍是调试表现层，还没有正式地图渲染、单位美术或完整 HUD。
 - Android / iOS 导出需要重新配置，不应沿用旧导出预设。
