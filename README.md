@@ -85,19 +85,19 @@ user://mods
 - Godot 能通过 `RustBackend` 调用 Rust `RustyCore`。
 - 启动流程能初始化 Rust 和运行时资源目录。
 - 新主菜单的单人 / 主机 / 加入按钮已能调用 Rust runtime mode API。
-- 单人模式已能通过 Godot `_process(delta)` 驱动 Rust update，并显示结构化 `Dictionary` frontend snapshot。
-- frontend snapshot 已包含最小占位实体列表，主菜单可显示实体数量和第一个实体状态。
-- 单人模式启动成功后会进入 `game.tscn`，并用简单方块渲染 snapshot 中的占位实体。
+- 单人模式和主机模式启动成功后会进入 `game.tscn`。
+- 单人模式和主机模式都会通过 Godot `_process(delta)` 驱动 Rust update，并显示结构化 `Dictionary` frontend snapshot。
+- frontend snapshot 已接入 Rust server ECS，主菜单和游戏场景可显示地图、单位、移动目标和命令状态。
+- 游戏场景已支持基础镜头、单位选择、移动命令和停止命令。
 - `SceneRouter` 和 `AppState` 已经作为 autoload 注册。
 - 当前工程已经移除旧外部后端、旧场景、旧 `class_name` 脚本和旧 C# 线索。
 
 ## 当前未完成
 
 - 新主菜单还是安全占位入口，不是最终 UI。
-- 单人模式当前只有占位 tick，还没有启动真实 server/client。
-- 主机 / 加入当前只记录 Rust 运行模式，还没有启动真实联网。
+- 加入远程房间当前只记录 Rust 运行模式，还没有启动真实联网。
 - 设置页、模组页、房间页、地图页需要重新按新结构实现。
-- 游戏场景目前只渲染占位实体，还没有正式地图、镜头、选择框或输入系统。
+- 游戏场景目前仍是调试表现层，还没有正式地图渲染、单位美术或完整 HUD。
 - Android / iOS 导出需要重新配置，不应沿用旧导出预设。
 
 ## Rust 核心
