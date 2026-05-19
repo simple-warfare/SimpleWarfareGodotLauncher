@@ -233,8 +233,8 @@ func _select_entity_at_screen_position(screen_position: Vector2) -> void:
 func _issue_move_command(screen_position: Vector2) -> void:
 	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
 		return
-	if _is_read_only_client():
-		push_warning("Join client is read-only until player ownership is implemented.")
+	if !_selected_entity_can_control():
+		push_warning("Selected entity is not controlled by this player.")
 		return
 
 	var target_position: Vector2 = _screen_to_world_position(screen_position)
@@ -250,8 +250,8 @@ func _issue_move_command(screen_position: Vector2) -> void:
 func _issue_stop_command() -> void:
 	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
 		return
-	if _is_read_only_client():
-		push_warning("Join client is read-only until player ownership is implemented.")
+	if !_selected_entity_can_control():
+		push_warning("Selected entity is not controlled by this player.")
 		return
 
 	var feedback := RustBackend.issue_stop_command(_selected_entity_id)
@@ -303,23 +303,30 @@ func _refresh_command_controls() -> void:
 
 
 func _selected_entity_can_stop() -> bool:
-	if _is_read_only_client():
-		return false
-	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+	if !_selected_entity_can_control():
 		return false
 
 	var entity: Dictionary = _entity_snapshots[_selected_entity_id]
 	return bool(entity.get("is_moving", false))
 
 
-func _is_read_only_client() -> bool:
-	return RustBackend.get_runtime_mode() == "client"
+func _selected_entity_can_control() -> bool:
+	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+		return false
+
+	var entity: Dictionary = _entity_snapshots[_selected_entity_id]
+	return bool(entity.get("can_control", false))
 
 
 func _control_mode_summary() -> String:
-	if _is_read_only_client():
+	var controllable_count := _controllable_entity_count()
+	if controllable_count == 0:
 		return "readonly"
-	return "local"
+	if _selected_entity_id != 0:
+		if _selected_entity_can_control():
+			return "owned"
+		return "readonly"
+	return "owned:%s" % controllable_count
 
 
 func _selected_entity_summary() -> String:
@@ -333,6 +340,17 @@ func _selected_entity_summary() -> String:
 		entity.get("max_health", 0),
 		entity.get("team", 0),
 	]
+
+
+func _controllable_entity_count() -> int:
+	var controllable_count := 0
+	for entity_value in _entity_snapshots.values():
+		if typeof(entity_value) != TYPE_DICTIONARY:
+			continue
+		var entity: Dictionary = entity_value
+		if bool(entity.get("can_control", false)):
+			controllable_count += 1
+	return controllable_count
 
 
 func _movement_command_summary() -> String:

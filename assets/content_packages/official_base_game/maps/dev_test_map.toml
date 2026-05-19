@@ -29,3 +29,10 @@ team = 0
 x = 120.0
 y = 240.0
 facing_degrees = 0.0
+
+[[initial_units]]
+unit = "official:tank"
+team = 1
+x = 300.0
+y = 240.0
+facing_degrees = 180.0
