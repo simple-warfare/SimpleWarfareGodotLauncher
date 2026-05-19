@@ -340,12 +340,13 @@ func _control_mode_summary() -> String:
 
 
 func _room_summary(room: Dictionary) -> String:
+	var phase := str(room.get("phase", "lobby"))
 	var local_team_id := int(room.get("local_team_id", -1))
 	var player_slots: Array = room.get("player_slots", [])
 	var local_team := "none"
 	if local_team_id >= 0:
 		local_team = str(local_team_id)
-	return "team:%s slots:%s" % [local_team, player_slots.size()]
+	return "phase:%s team:%s slots:%s" % [phase, local_team, player_slots.size()]
 
 
 func _selected_entity_summary() -> String:

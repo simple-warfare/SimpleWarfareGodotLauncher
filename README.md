@@ -92,6 +92,7 @@ user://mods
 - frontend snapshot 已接入 Rust server ECS，主菜单和游戏场景可显示地图、单位、移动目标和命令状态。
 - frontend snapshot 已包含最小房间队伍槽，游戏状态行会显示本机 team 和 player slot 数。
 - Host / Join 成功后会进入最小房间页，房间页显示本机队伍、玩家槽、host / connected / local 标记，并提供 host-only Start 和 Leave。
+- Host 点击 Start 会提交 Rust `start_game` 命令；server 广播 `room.phase=in_game` 后，Host 和 Join client 都会自动进入游戏场景。
 - 游戏场景已支持基础镜头、单位选择、移动命令和停止命令；Join client 只会对本机拥有的单位开放命令操作。
 - `SceneRouter` 和 `AppState` 已经作为 autoload 注册。
 - 当前工程已经移除旧外部后端、旧场景、旧 `class_name` 脚本和旧 C# 线索。
@@ -99,7 +100,7 @@ user://mods
 ## 当前未完成
 
 - 新主菜单还是安全占位入口，不是最终 UI。
-- 房间页仍缺少玩家队伍选择、准备状态、host start 广播、连接取消 / 重试流程和更完整的网络错误恢复。
+- 房间页仍缺少玩家队伍选择、准备状态、连接取消 / 重试流程和更完整的网络错误恢复。
 - 设置页、模组页、地图页需要重新按新结构实现；房间页目前只是最小可用流程。
 - 游戏场景目前仍是调试表现层，还没有正式地图渲染、单位美术或完整 HUD。
 - Android / iOS 导出需要重新配置，不应沿用旧导出预设。

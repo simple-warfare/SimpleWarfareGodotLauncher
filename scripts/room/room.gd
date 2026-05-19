@@ -11,6 +11,8 @@ const SNAPSHOT_WARNING_SECONDS := 8.0
 
 var _wait_seconds := 0.0
 var _last_slots_key := ""
+var _start_requested := false
+var _routing_to_game := false
 
 
 func _ready() -> void:
@@ -31,12 +33,14 @@ func _refresh_from_snapshot() -> void:
 	var snapshot := RustBackend.get_frontend_snapshot()
 	var room := _snapshot_room(snapshot)
 	var slots := _room_slots(room)
+	var phase := str(room.get("phase", "lobby"))
 	var local_is_host := _local_is_host(slots)
 	var server_tick := int(snapshot.get("server_tick", 0))
 	var client_tick := int(snapshot.get("client_tick", 0))
 
 	_title.text = _mode_title()
-	_status_value.text = "status=%s server_tick=%s client_tick=%s result=%s" % [
+	_status_value.text = "phase=%s status=%s server_tick=%s client_tick=%s result=%s" % [
+		phase,
 		snapshot.get("status", "unknown"),
 		server_tick,
 		client_tick,
@@ -47,6 +51,9 @@ func _refresh_from_snapshot() -> void:
 		_status_value.text += "\nwaiting for server %s (%.1fs)" % [AppState.server_addr, _wait_seconds]
 		if _wait_seconds >= SNAPSHOT_WARNING_SECONDS:
 			_status_value.text += "\nno server snapshot yet"
+
+	if phase == "in_game":
+		_route_to_game_when_started()
 
 	var local_player_key := str(room.get("local_player_key", ""))
 	if local_player_key.is_empty():
@@ -64,7 +71,7 @@ func _refresh_from_snapshot() -> void:
 		slots.size(),
 	]
 
-	_start_button.disabled = !local_is_host
+	_start_button.disabled = !local_is_host || phase != "lobby" || _start_requested
 	_refresh_slots(slots)
 
 
@@ -154,7 +161,23 @@ func _make_slot_label(text: String) -> Label:
 func _start_game() -> void:
 	if _start_button.disabled:
 		return
-	SceneRouter.go_to_game()
+
+	_start_requested = true
+	_start_button.disabled = true
+	var feedback := RustBackend.issue_start_game_command()
+	if !bool(feedback.get("accepted", false)):
+		_start_requested = false
+		push_warning("Rust start_game command rejected: %s %s" % [
+			feedback.get("rejected_reason", "unknown"),
+			feedback.get("detail", ""),
+		])
+
+
+func _route_to_game_when_started() -> void:
+	if _routing_to_game:
+		return
+	_routing_to_game = true
+	SceneRouter.call_deferred("go_to_game")
 
 
 func _leave_room() -> void:

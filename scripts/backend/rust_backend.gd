@@ -172,6 +172,12 @@ func issue_stop_command(entity_id: int) -> Dictionary:
 	})
 
 
+func issue_start_game_command() -> Dictionary:
+	return submit_player_command({
+		"type": "start_game",
+	})
+
+
 func submit_player_command(command: Dictionary) -> Dictionary:
 	if !_available:
 		return _command_feedback(false, "rejected", "rusty_core_unavailable", "RustyCore class is not available.")
@@ -247,6 +253,7 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 			"last_rejected_detail": "",
 		},
 		"room": {
+			"phase": "lobby",
 			"local_player_key": "",
 			"local_team_id": -1,
 			"player_slots": [],
