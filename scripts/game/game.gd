@@ -55,9 +55,10 @@ func _refresh_from_snapshot() -> void:
 
 	_remove_missing_entities(alive_entity_ids)
 	_refresh_command_controls()
-	_status_value.text = "map=%s mode=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s commands=%s" % [
+	_status_value.text = "map=%s mode=%s control=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s commands=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
+		_control_mode_summary(),
 		snapshot.get("status", "unknown"),
 		snapshot.get("server_tick", 0),
 		snapshot.get("client_tick", 0),
@@ -232,6 +233,9 @@ func _select_entity_at_screen_position(screen_position: Vector2) -> void:
 func _issue_move_command(screen_position: Vector2) -> void:
 	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
 		return
+	if _is_read_only_client():
+		push_warning("Join client is read-only until player ownership is implemented.")
+		return
 
 	var target_position: Vector2 = _screen_to_world_position(screen_position)
 	var feedback := RustBackend.issue_move_command(_selected_entity_id, target_position)
@@ -245,6 +249,9 @@ func _issue_move_command(screen_position: Vector2) -> void:
 
 func _issue_stop_command() -> void:
 	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+		return
+	if _is_read_only_client():
+		push_warning("Join client is read-only until player ownership is implemented.")
 		return
 
 	var feedback := RustBackend.issue_stop_command(_selected_entity_id)
@@ -296,11 +303,23 @@ func _refresh_command_controls() -> void:
 
 
 func _selected_entity_can_stop() -> bool:
+	if _is_read_only_client():
+		return false
 	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
 		return false
 
 	var entity: Dictionary = _entity_snapshots[_selected_entity_id]
 	return bool(entity.get("is_moving", false))
+
+
+func _is_read_only_client() -> bool:
+	return RustBackend.get_runtime_mode() == "client"
+
+
+func _control_mode_summary() -> String:
+	if _is_read_only_client():
+		return "readonly"
+	return "local"
 
 
 func _selected_entity_summary() -> String:
