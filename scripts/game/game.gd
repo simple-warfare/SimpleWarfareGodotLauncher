@@ -368,8 +368,19 @@ func _movement_command_summary() -> String:
 
 
 func _command_lifecycle_summary(commands: Dictionary) -> String:
-	return "pending:%s applied:%s/%s" % [
+	var result_status := str(commands.get("last_result_status", ""))
+	var rejected_reason := str(commands.get("last_rejected_reason", ""))
+	if result_status == "rejected" && rejected_reason != "":
+		return "pending:%s ack:%s result:%s rejected:%s" % [
+			commands.get("pending_count", 0),
+			commands.get("acknowledged_count", 0),
+			result_status,
+			rejected_reason,
+		]
+	return "pending:%s ack:%s result:%s applied:%s/%s" % [
 		commands.get("pending_count", 0),
+		commands.get("acknowledged_count", 0),
+		result_status,
 		commands.get("last_applied_command_id", 0),
 		commands.get("last_applied_sequence", 0),
 	]

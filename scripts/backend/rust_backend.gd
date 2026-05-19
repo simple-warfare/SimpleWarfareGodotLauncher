@@ -237,8 +237,14 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 		"client_tick": 0,
 		"commands": {
 			"pending_count": 0,
+			"acknowledged_count": 0,
+			"last_acknowledged_command_id": 0,
+			"last_acknowledged_sequence": 0,
 			"last_applied_command_id": 0,
 			"last_applied_sequence": 0,
+			"last_result_status": "",
+			"last_rejected_reason": "",
+			"last_rejected_detail": "",
 		},
 		"entities": [],
 	}
