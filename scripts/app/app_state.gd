@@ -11,6 +11,7 @@ enum LaunchMode {
 
 var current_scene_path := ""
 var launch_mode := LaunchMode.NONE
+var server_addr := ""
 var assets_ready := false
 var rust_ready := false
 var last_error := ""
@@ -32,3 +33,8 @@ func set_error(message: String) -> void:
 
 func clear_error() -> void:
 	last_error = ""
+
+
+func clear_runtime_session() -> void:
+	launch_mode = LaunchMode.NONE
+	server_addr = ""

@@ -2,6 +2,7 @@ extends Node
 
 const BOOTSTRAP_SCENE := "res://scenes/bootstrap.tscn"
 const MAIN_MENU_SCENE := "res://scenes/main_menu.tscn"
+const ROOM_SCENE := "res://scenes/room.tscn"
 const GAME_SCENE := "res://scenes/game.tscn"
 
 
@@ -11,6 +12,10 @@ func go_to_bootstrap() -> void:
 
 func go_to_main_menu() -> void:
 	_change_scene(MAIN_MENU_SCENE)
+
+
+func go_to_room() -> void:
+	_change_scene(ROOM_SCENE)
 
 
 func go_to_game() -> void:
