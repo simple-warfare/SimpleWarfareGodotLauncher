@@ -73,6 +73,8 @@ func _start_host() -> void:
 	var result := RustBackend.start_host()
 	if result == "ok":
 		AppState.launch_mode = AppState.LaunchMode.HOST
+		SceneRouter.go_to_game()
+		return
 	_refresh_status()
 
 
