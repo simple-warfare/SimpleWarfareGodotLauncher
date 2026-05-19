@@ -246,5 +246,10 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 			"last_rejected_reason": "",
 			"last_rejected_detail": "",
 		},
+		"room": {
+			"local_player_key": "",
+			"local_team_id": -1,
+			"player_slots": [],
+		},
 		"entities": [],
 	}

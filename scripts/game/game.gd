@@ -37,6 +37,7 @@ func _refresh_from_snapshot() -> void:
 	var entities: Array = snapshot.get("entities", [])
 	var map: Dictionary = _snapshot_map(snapshot)
 	var commands: Dictionary = _snapshot_commands(snapshot)
+	var room: Dictionary = _snapshot_room(snapshot)
 	_refresh_map(map)
 
 	var alive_entity_ids := {}
@@ -55,9 +56,10 @@ func _refresh_from_snapshot() -> void:
 
 	_remove_missing_entities(alive_entity_ids)
 	_refresh_command_controls()
-	_status_value.text = "map=%s mode=%s control=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s commands=%s" % [
+	_status_value.text = "map=%s mode=%s room=%s control=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s commands=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
+		_room_summary(room),
 		_control_mode_summary(),
 		snapshot.get("status", "unknown"),
 		snapshot.get("server_tick", 0),
@@ -83,6 +85,14 @@ func _snapshot_commands(snapshot: Dictionary) -> Dictionary:
 		return {}
 	var commands: Dictionary = commands_value
 	return commands
+
+
+func _snapshot_room(snapshot: Dictionary) -> Dictionary:
+	var room_value: Variant = snapshot.get("room", {})
+	if typeof(room_value) != TYPE_DICTIONARY:
+		return {}
+	var room: Dictionary = room_value
+	return room
 
 
 func _refresh_map(map: Dictionary) -> void:
@@ -327,6 +337,15 @@ func _control_mode_summary() -> String:
 			return "owned"
 		return "readonly"
 	return "owned:%s" % controllable_count
+
+
+func _room_summary(room: Dictionary) -> String:
+	var local_team_id := int(room.get("local_team_id", -1))
+	var player_slots: Array = room.get("player_slots", [])
+	var local_team := "none"
+	if local_team_id >= 0:
+		local_team = str(local_team_id)
+	return "team:%s slots:%s" % [local_team, player_slots.size()]
 
 
 func _selected_entity_summary() -> String:
