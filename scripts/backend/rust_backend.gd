@@ -121,7 +121,7 @@ func start_client(server_addr: String) -> String:
 		state_changed.emit()
 		return _last_result
 
-	# 当前只把目标地址交给 Rust runtime 记录；真实联网连接会在下一阶段实现。
+	# Rust runtime 会启动 UDP client；菜单层负责等待首个 server snapshot 后进入游戏场景。
 	_last_result = str(_rusty_core.call("start_client", server_addr))
 	_refresh_error_detail()
 	state_changed.emit()
