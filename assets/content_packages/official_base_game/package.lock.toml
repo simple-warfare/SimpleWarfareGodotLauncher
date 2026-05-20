@@ -4,9 +4,9 @@ package_version = "0.1.0"
 schema_version = 1
 
 [fingerprint]
-algorithm = "sha256-toml-v1"
-hash = "d72c1554be2593d75708e6619fccd705752132b8a4f62ee18a2cfa4a14049c8f"
-file_count = 5
+algorithm = "sha256-content-v2"
+hash = "6d7f6e35d5bd8415f636e7e90a763641a5248f1c0d6b909e582883a20bc5f614"
+file_count = 6
 
 [[resources]]
 id = "official:credits"

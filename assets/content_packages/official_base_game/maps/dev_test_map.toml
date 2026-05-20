@@ -9,22 +9,35 @@ tile_size = 20
 id = "official:terrain"
 tile_width = 20
 tile_height = 20
+source = "terrain/atlas.png"
 
 [[tilesets.tiles]]
 id = 0
 name = "grass"
 color = "#20442d"
+source_x = 0
+source_y = 0
+source_width = 20
+source_height = 20
 
 [[tilesets.tiles]]
 id = 1
 name = "road"
 color = "#4b4f45"
+source_x = 20
+source_y = 0
+source_width = 20
+source_height = 20
 
 [[tilesets.tiles]]
 id = 2
 name = "water"
 color = "#244760"
 blocked = true
+source_x = 40
+source_y = 0
+source_width = 20
+source_height = 20
 
 [[layers]]
 id = "ground"

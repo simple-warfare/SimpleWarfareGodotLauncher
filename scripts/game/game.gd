@@ -27,6 +27,7 @@ var _tile_layer_root: Node2D
 var _object_layer_root: Node2D
 var _last_tile_layers_key := ""
 var _last_objects_key := ""
+var _tile_texture_cache: Dictionary = {}
 var _camera_initialized := false
 var _camera_min_zoom := 0.5
 var _camera_max_zoom := 2.0
@@ -190,15 +191,15 @@ func _refresh_tile_layers(map: Dictionary, tile_size: float, map_size: Vector2) 
 	var root := _get_or_create_tile_layer_root()
 	_clear_children(root)
 
-	var tile_colors := _map_tile_colors(tilesets)
+	var tile_definitions := _map_tile_definitions(tilesets)
 	for layer_value in layers:
 		if typeof(layer_value) != TYPE_DICTIONARY:
 			continue
 		var layer: Dictionary = layer_value
-		_render_tile_layer(root, layer, tile_colors, tile_size, map_size)
+		_render_tile_layer(root, layer, tile_definitions, tile_size, map_size)
 
 
-func _render_tile_layer(root: Node2D, layer: Dictionary, tile_colors: Dictionary, tile_size: float, map_size: Vector2) -> void:
+func _render_tile_layer(root: Node2D, layer: Dictionary, tile_definitions: Dictionary, tile_size: float, map_size: Vector2) -> void:
 	var layer_node := Node2D.new()
 	layer_node.name = "TileLayer_%s" % str(layer.get("id", "layer"))
 	layer_node.z_index = TILE_LAYER_Z_BASE + int(layer.get("z_index", 0))
@@ -214,13 +215,20 @@ func _render_tile_layer(root: Node2D, layer: Dictionary, tile_colors: Dictionary
 		for y in range(height):
 			for x in range(width):
 				var tile_id := int(data[y * width + x])
-				_add_tile_rect(layer_node, Vector2(x * tile_size, y * tile_size), tile_size, _tile_color(tile_colors, tile_id))
+				_add_tile(layer_node, Vector2(x * tile_size, y * tile_size), tile_size, _tile_definition(tile_definitions, str(layer.get("tileset", "")), tile_id))
 	else:
-		var fill := ColorRect.new()
-		fill.position = Vector2.ZERO
-		fill.size = map_size
-		fill.color = _tile_color(tile_colors, int(layer.get("default_tile", 0)))
-		layer_node.add_child(fill)
+		var default_tile := int(layer.get("default_tile", 0))
+		var default_definition := _tile_definition(tile_definitions, str(layer.get("tileset", "")), default_tile)
+		if _tile_has_texture(default_definition):
+			for y in range(height):
+				for x in range(width):
+					_add_tile(layer_node, Vector2(x * tile_size, y * tile_size), tile_size, default_definition)
+		else:
+			var fill := ColorRect.new()
+			fill.position = Vector2.ZERO
+			fill.size = map_size
+			fill.color = _tile_color(default_definition, default_tile)
+			layer_node.add_child(fill)
 
 	for tile_value in _map_array(layer, "tiles"):
 		if typeof(tile_value) != TYPE_DICTIONARY:
@@ -230,7 +238,8 @@ func _render_tile_layer(root: Node2D, layer: Dictionary, tile_colors: Dictionary
 			float(int(tile.get("x", 0))) * tile_size,
 			float(int(tile.get("y", 0))) * tile_size
 		)
-		_add_tile_rect(layer_node, tile_position, tile_size, _tile_color(tile_colors, int(tile.get("tile", 0))))
+		var tile_id := int(tile.get("tile", 0))
+		_add_tile(layer_node, tile_position, tile_size, _tile_definition(tile_definitions, str(layer.get("tileset", "")), tile_id))
 
 
 func _refresh_objects(objects: Array) -> void:
@@ -249,18 +258,46 @@ func _refresh_objects(objects: Array) -> void:
 		_add_object_rect(root, object)
 
 
-func _map_tile_colors(tilesets: Array) -> Dictionary:
-	var colors := {}
+func _map_tile_definitions(tilesets: Array) -> Dictionary:
+	var definitions := {}
 	for tileset_value in tilesets:
 		if typeof(tileset_value) != TYPE_DICTIONARY:
 			continue
 		var tileset: Dictionary = tileset_value
+		var tileset_id := str(tileset.get("id", ""))
+		var source := str(tileset.get("source", ""))
 		for tile_value in _map_array(tileset, "tiles"):
 			if typeof(tile_value) != TYPE_DICTIONARY:
 				continue
 			var tile: Dictionary = tile_value
-			colors[int(tile.get("id", 0))] = _parse_tile_color(str(tile.get("color", "")), int(tile.get("id", 0)))
-	return colors
+			var tile_id := int(tile.get("id", 0))
+			definitions[_tile_definition_key(tileset_id, tile_id)] = {
+				"color": _parse_tile_color(str(tile.get("color", "")), tile_id),
+				"source": source,
+				"source_x": int(tile.get("source_x", -1)),
+				"source_y": int(tile.get("source_y", -1)),
+				"source_width": int(tile.get("source_width", -1)),
+				"source_height": int(tile.get("source_height", -1)),
+			}
+	return definitions
+
+
+func _tile_definition_key(tileset_id: String, tile_id: int) -> String:
+	return "%s#%s" % [tileset_id, tile_id]
+
+
+func _tile_definition(tile_definitions: Dictionary, tileset_id: String, tile_id: int) -> Dictionary:
+	var key := _tile_definition_key(tileset_id, tile_id)
+	if tile_definitions.has(key):
+		return tile_definitions[key]
+	return {
+		"color": _parse_tile_color("", tile_id),
+		"source": "",
+		"source_x": -1,
+		"source_y": -1,
+		"source_width": -1,
+		"source_height": -1,
+	}
 
 
 func _parse_tile_color(color_text: String, tile_id: int) -> Color:
@@ -279,10 +316,58 @@ func _parse_tile_color(color_text: String, tile_id: int) -> Color:
 			return Color(0.13, 0.27, 0.18, 1.0)
 
 
-func _tile_color(tile_colors: Dictionary, tile_id: int) -> Color:
-	if tile_colors.has(tile_id):
-		return tile_colors[tile_id]
+func _tile_color(tile_definition: Dictionary, tile_id: int) -> Color:
+	var color_value: Variant = tile_definition.get("color", _parse_tile_color("", tile_id))
+	if typeof(color_value) == TYPE_COLOR:
+		return color_value
 	return _parse_tile_color("", tile_id)
+
+
+func _tile_has_texture(tile_definition: Dictionary) -> bool:
+	return !str(tile_definition.get("source", "")).is_empty() \
+		&& int(tile_definition.get("source_width", -1)) > 0 \
+		&& int(tile_definition.get("source_height", -1)) > 0
+
+
+func _add_tile(parent: Node, position: Vector2, tile_size: float, tile_definition: Dictionary) -> void:
+	if _tile_has_texture(tile_definition):
+		var texture := _load_tile_texture(str(tile_definition.get("source", "")))
+		if texture != null:
+			var sprite := Sprite2D.new()
+			sprite.position = position
+			sprite.centered = false
+			sprite.texture = texture
+			sprite.region_enabled = true
+			var source_width := float(int(tile_definition.get("source_width", 0)))
+			var source_height := float(int(tile_definition.get("source_height", 0)))
+			sprite.region_rect = Rect2(
+				float(int(tile_definition.get("source_x", 0))),
+				float(int(tile_definition.get("source_y", 0))),
+				source_width,
+				source_height
+			)
+			sprite.scale = Vector2(tile_size / source_width, tile_size / source_height)
+			parent.add_child(sprite)
+			return
+
+	_add_tile_rect(parent, position, tile_size, _tile_color(tile_definition, 0))
+
+
+func _load_tile_texture(relative_source: String) -> Texture2D:
+	var package_root := RustBackend.get_assets_root().path_join("content_packages/official_base_game")
+	var source_path := package_root.path_join(relative_source)
+	if _tile_texture_cache.has(source_path):
+		return _tile_texture_cache[source_path]
+
+	var image := Image.new()
+	var load_error := image.load(source_path)
+	if load_error != OK:
+		_tile_texture_cache[source_path] = null
+		return null
+
+	var texture := ImageTexture.create_from_image(image)
+	_tile_texture_cache[source_path] = texture
+	return texture
 
 
 func _add_tile_rect(parent: Node, position: Vector2, tile_size: float, color: Color) -> void:
