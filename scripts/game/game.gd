@@ -4,6 +4,11 @@ const UNIT_SIZE := Vector2(32.0, 32.0)
 const CAMERA_MOVE_SPEED := 520.0
 const CAMERA_ZOOM_STEP := 0.1
 const SELECTION_PADDING := 6.0
+const TILE_LAYER_Z_BASE := 10
+const OBJECT_LAYER_Z_BASE := 40
+const MOVE_TARGET_Z := 80
+const MAP_BOUNDS_Z := 90
+const ENTITY_Z := 100
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -182,7 +187,7 @@ func _refresh_tile_layers(map: Dictionary, tile_size: float, map_size: Vector2) 
 func _render_tile_layer(root: Node2D, layer: Dictionary, tile_colors: Dictionary, tile_size: float, map_size: Vector2) -> void:
 	var layer_node := Node2D.new()
 	layer_node.name = "TileLayer_%s" % str(layer.get("id", "layer"))
-	layer_node.z_index = int(layer.get("z_index", 0)) - 100
+	layer_node.z_index = TILE_LAYER_Z_BASE + int(layer.get("z_index", 0))
 	root.add_child(layer_node)
 
 	var width := int(layer.get("width", 0))
@@ -230,7 +235,7 @@ func _refresh_object_layers(map: Dictionary) -> void:
 		var layer: Dictionary = layer_value
 		var layer_node := Node2D.new()
 		layer_node.name = "ObjectLayer_%s" % str(layer.get("id", "objects"))
-		layer_node.z_index = int(layer.get("z_index", 0)) - 50
+		layer_node.z_index = OBJECT_LAYER_Z_BASE + int(layer.get("z_index", 0))
 		root.add_child(layer_node)
 
 		for object_value in _map_array(layer, "objects"):
@@ -582,6 +587,7 @@ func _get_or_create_entity_node(entity_id: int) -> Node2D:
 
 	var unit_node := Node2D.new()
 	unit_node.name = "Entity%s" % entity_id
+	unit_node.z_index = ENTITY_Z
 
 	var body := ColorRect.new()
 	body.name = "Body"
@@ -614,7 +620,7 @@ func _get_or_create_map_bounds() -> Line2D:
 
 	_map_bounds = Line2D.new()
 	_map_bounds.name = "MapBounds"
-	_map_bounds.z_index = 20
+	_map_bounds.z_index = MAP_BOUNDS_Z
 	_map_bounds.width = 3.0
 	_map_bounds.default_color = Color(0.46, 0.72, 0.55, 0.95)
 	_world.add_child(_map_bounds)
@@ -653,6 +659,7 @@ func _update_or_create_move_target_marker(entity_id: int, target_position: Vecto
 	else:
 		marker = Line2D.new()
 		marker.name = "MoveTarget%s" % entity_id
+		marker.z_index = MOVE_TARGET_Z
 		marker.width = 2.0
 		marker.default_color = Color(0.35, 0.72, 1.0, 0.9)
 		marker.points = PackedVector2Array([
