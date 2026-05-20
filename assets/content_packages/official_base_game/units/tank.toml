@@ -13,3 +13,23 @@ max_speed = 1.1
 [economy]
 cost = { "official:credits" = 100 }
 resource_rates_per_second = { "official:credits" = 2 }
+
+[combat]
+
+[[combat.attacks]]
+id = "cannon"
+target_tags = ["ground"]
+range = 180.0
+cooldown_seconds = 1.25
+
+[combat.attacks.projectile]
+speed = 260.0
+lifetime_seconds = 2.0
+direct_damage = 35
+
+[[combat.turrets]]
+id = "main"
+attack = "cannon"
+mount_x = 0.0
+mount_y = 0.0
+turn_rate_degrees_per_second = 120.0
