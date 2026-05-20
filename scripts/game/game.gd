@@ -25,7 +25,7 @@ var _map_bounds: Line2D
 var _tile_layer_root: Node2D
 var _object_layer_root: Node2D
 var _last_tile_layers_key := ""
-var _last_object_layers_key := ""
+var _last_objects_key := ""
 var _camera_initialized := false
 var _camera_min_zoom := 0.5
 var _camera_max_zoom := 2.0
@@ -46,10 +46,12 @@ func _process(delta: float) -> void:
 func _refresh_from_snapshot() -> void:
 	var snapshot := RustBackend.get_frontend_snapshot()
 	var entities: Array = snapshot.get("entities", [])
+	var objects: Array = snapshot.get("objects", [])
 	var map: Dictionary = _snapshot_map(snapshot)
 	var commands: Dictionary = _snapshot_commands(snapshot)
 	var room: Dictionary = _snapshot_room(snapshot)
 	_refresh_map(map)
+	_refresh_objects(objects)
 
 	var alive_entity_ids := {}
 	for entity in entities:
@@ -129,7 +131,6 @@ func _refresh_map(map: Dictionary) -> void:
 		Vector2.ZERO,
 	])
 	_refresh_tile_layers(map, tile_size, map_size)
-	_refresh_object_layers(map)
 	_apply_camera_config(map, map_size)
 
 
@@ -219,30 +220,20 @@ func _render_tile_layer(root: Node2D, layer: Dictionary, tile_colors: Dictionary
 		_add_tile_rect(layer_node, tile_position, tile_size, _tile_color(tile_colors, int(tile.get("tile", 0))))
 
 
-func _refresh_object_layers(map: Dictionary) -> void:
-	var layers := _map_array(map, "object_layers")
-	var layers_key := str(layers)
-	if layers_key == _last_object_layers_key:
+func _refresh_objects(objects: Array) -> void:
+	var objects_key := str(objects)
+	if objects_key == _last_objects_key:
 		return
 
-	_last_object_layers_key = layers_key
+	_last_objects_key = objects_key
 	var root := _get_or_create_object_layer_root()
 	_clear_children(root)
 
-	for layer_value in layers:
-		if typeof(layer_value) != TYPE_DICTIONARY:
+	for object_value in objects:
+		if typeof(object_value) != TYPE_DICTIONARY:
 			continue
-		var layer: Dictionary = layer_value
-		var layer_node := Node2D.new()
-		layer_node.name = "ObjectLayer_%s" % str(layer.get("id", "objects"))
-		layer_node.z_index = OBJECT_LAYER_Z_BASE + int(layer.get("z_index", 0))
-		root.add_child(layer_node)
-
-		for object_value in _map_array(layer, "objects"):
-			if typeof(object_value) != TYPE_DICTIONARY:
-				continue
-			var object: Dictionary = object_value
-			_add_object_rect(layer_node, object)
+		var object: Dictionary = object_value
+		_add_object_rect(root, object)
 
 
 func _map_tile_colors(tilesets: Array) -> Dictionary:
@@ -300,6 +291,7 @@ func _add_object_rect(parent: Node, object: Dictionary) -> void:
 	)
 	rect.size = Vector2(width, height)
 	rect.rotation_degrees = float(object.get("rotation_degrees", 0.0))
+	rect.z_index = OBJECT_LAYER_Z_BASE + int(object.get("z_index", 0))
 	rect.color = _object_color(str(object.get("kind", "")))
 	parent.add_child(rect)
 

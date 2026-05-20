@@ -360,6 +360,7 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 			"local_team_id": -1,
 			"player_slots": [],
 		},
+		"objects": [],
 		"entities": [],
 	}
 
