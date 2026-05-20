@@ -13,15 +13,6 @@ max_speed = 1.1
 
 [economy]
 cost = { "official:credits" = 100 }
-resource_rates_per_second = { "official:credits" = 2 }
-
-[production]
-
-[[production.build_menu]]
-unit = "official:tank"
-build_time_seconds = 1.0
-spawn_offset_x = 24.0
-spawn_offset_y = 0.0
 
 [combat]
 

@@ -104,15 +104,29 @@ ally_group = 1
 starting_resources = { "official:credits" = 4000 }
 
 [[initial_units]]
-unit = "official:tank"
+unit = "official:factory"
 team = 0
-x = 120.0
+x = 80.0
 y = 240.0
 facing_degrees = 0.0
 
 [[initial_units]]
 unit = "official:tank"
+team = 0
+x = 140.0
+y = 240.0
+facing_degrees = 0.0
+
+[[initial_units]]
+unit = "official:factory"
 team = 1
-x = 300.0
+x = 340.0
+y = 240.0
+facing_degrees = 180.0
+
+[[initial_units]]
+unit = "official:tank"
+team = 1
+x = 280.0
 y = 240.0
 facing_degrees = 180.0
