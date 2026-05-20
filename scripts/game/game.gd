@@ -8,7 +8,7 @@ const TILE_LAYER_Z_BASE := 10
 const OBJECT_LAYER_Z_BASE := 40
 const MOVE_TARGET_Z := 80
 const MAP_BOUNDS_Z := 90
-const ENTITY_Z := 100
+const UNIT_Z := 100
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -17,10 +17,10 @@ const ENTITY_Z := 100
 @onready var _stop_command_button: Button = %StopCommandButton
 @onready var _diagnostics_button: Button = %DiagnosticsButton
 
-var _entity_nodes: Dictionary = {}
-var _entity_snapshots: Dictionary = {}
+var _unit_nodes: Dictionary = {}
+var _unit_snapshots: Dictionary = {}
 var _move_target_markers: Dictionary = {}
-var _selected_entity_id := 0
+var _selected_unit_id := 0
 var _map_bounds: Line2D
 var _tile_layer_root: Node2D
 var _object_layer_root: Node2D
@@ -45,7 +45,7 @@ func _process(delta: float) -> void:
 
 func _refresh_from_snapshot() -> void:
 	var snapshot := RustBackend.get_frontend_snapshot()
-	var entities: Array = snapshot.get("entities", [])
+	var units: Array = snapshot.get("units", [])
 	var objects: Array = snapshot.get("objects", [])
 	var map: Dictionary = _snapshot_map(snapshot)
 	var commands: Dictionary = _snapshot_commands(snapshot)
@@ -53,23 +53,23 @@ func _refresh_from_snapshot() -> void:
 	_refresh_map(map)
 	_refresh_objects(objects)
 
-	var alive_entity_ids := {}
-	for entity in entities:
-		if typeof(entity) != TYPE_DICTIONARY:
+	var alive_unit_ids := {}
+	for unit in units:
+		if typeof(unit) != TYPE_DICTIONARY:
 			continue
 
-		var entity_id := int(entity.get("id", 0))
-		if entity_id == 0:
+		var unit_id := int(unit.get("id", 0))
+		if unit_id == 0:
 			continue
 
-		alive_entity_ids[entity_id] = true
-		_entity_snapshots[entity_id] = entity
-		_update_entity_node(entity_id, entity)
-		_sync_move_target_marker(entity_id, entity)
+		alive_unit_ids[unit_id] = true
+		_unit_snapshots[unit_id] = unit
+		_update_unit_node(unit_id, unit)
+		_sync_move_target_marker(unit_id, unit)
 
-	_remove_missing_entities(alive_entity_ids)
+	_remove_missing_units(alive_unit_ids)
 	_refresh_command_controls()
-	_status_value.text = "map=%s mode=%s room=%s control=%s status=%s server_tick=%s client_tick=%s entities=%s selected=%s move=%s commands=%s" % [
+	_status_value.text = "map=%s mode=%s room=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s move=%s commands=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
 		_room_summary(room),
@@ -77,8 +77,8 @@ func _refresh_from_snapshot() -> void:
 		snapshot.get("status", "unknown"),
 		snapshot.get("server_tick", 0),
 		snapshot.get("client_tick", 0),
-		entities.size(),
-		_selected_entity_summary(),
+		units.size(),
+		_selected_unit_summary(),
 		_movement_command_summary(),
 		_command_lifecycle_summary(commands),
 	]
@@ -350,7 +350,7 @@ func _input(event: InputEvent) -> void:
 			_set_camera_zoom(_camera.zoom.x - CAMERA_ZOOM_STEP)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_LEFT:
-			_select_entity_at_screen_position(event.position)
+			_select_unit_at_screen_position(event.position)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			_issue_move_command(event.position)
@@ -366,56 +366,56 @@ func _is_over_hud(screen_position: Vector2) -> bool:
 	return _hud.get_global_rect().has_point(screen_position)
 
 
-func _update_entity_node(entity_id: int, entity: Dictionary) -> void:
-	var unit_node := _get_or_create_entity_node(entity_id)
-	unit_node.position = _entity_snapshot_position(entity)
+func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
+	var unit_node := _get_or_create_unit_node(unit_id)
+	unit_node.position = _unit_snapshot_position(unit)
 	var body: ColorRect = unit_node.get_node("Body")
-	var radius: float = float(entity.get("radius", UNIT_SIZE.x * 0.5))
+	var radius: float = float(unit.get("radius", UNIT_SIZE.x * 0.5))
 	var diameter: float = max(radius * 2.0, 8.0)
 	body.size = Vector2(diameter, diameter)
 	body.position = -body.size * 0.5
-	body.color = _team_color(int(entity.get("team", 0)))
-	body.rotation_degrees = float(entity.get("facing_degrees", 0.0))
+	body.color = _team_color(int(unit.get("team", 0)))
+	body.rotation_degrees = float(unit.get("facing_degrees", 0.0))
 
 	var selection: Line2D = unit_node.get_node("Selection")
 	var selection_radius: float = diameter * 0.5 + SELECTION_PADDING
 	selection.points = _selection_points(selection_radius)
-	selection.visible = entity_id == _selected_entity_id
+	selection.visible = unit_id == _selected_unit_id
 
 	unit_node.get_node("Label").text = "%s\nhp:%s" % [
-		entity.get("display_name", entity.get("kind", "unit")),
-		"%s/%s" % [entity.get("health", 0), entity.get("max_health", 0)],
+		unit.get("display_name", unit.get("kind", "unit")),
+		"%s/%s" % [unit.get("health", 0), unit.get("max_health", 0)],
 	]
 
 
-func _select_entity_at_screen_position(screen_position: Vector2) -> void:
+func _select_unit_at_screen_position(screen_position: Vector2) -> void:
 	var world_position: Vector2 = _screen_to_world_position(screen_position)
-	var best_entity_id := 0
+	var best_unit_id := 0
 	var best_distance: float = INF
 
-	for entity_id in _entity_snapshots.keys():
-		var entity: Dictionary = _entity_snapshots[entity_id]
-		var entity_position: Vector2 = _entity_snapshot_position(entity)
-		var radius: float = float(entity.get("radius", UNIT_SIZE.x * 0.5)) + SELECTION_PADDING
-		var distance: float = world_position.distance_to(entity_position)
+	for unit_id in _unit_snapshots.keys():
+		var unit: Dictionary = _unit_snapshots[unit_id]
+		var unit_position: Vector2 = _unit_snapshot_position(unit)
+		var radius: float = float(unit.get("radius", UNIT_SIZE.x * 0.5)) + SELECTION_PADDING
+		var distance: float = world_position.distance_to(unit_position)
 		if distance <= radius && distance < best_distance:
-			best_entity_id = int(entity_id)
+			best_unit_id = int(unit_id)
 			best_distance = distance
 
-	_selected_entity_id = best_entity_id
+	_selected_unit_id = best_unit_id
 	_refresh_selection_visuals()
 	_refresh_command_controls()
 
 
 func _issue_move_command(screen_position: Vector2) -> void:
-	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
 		return
-	if !_selected_entity_can_control():
-		push_warning("Selected entity is not controlled by this player.")
+	if !_selected_unit_can_control():
+		push_warning("Selected unit is not controlled by this player.")
 		return
 
 	var target_position: Vector2 = _screen_to_world_position(screen_position)
-	var feedback := RustBackend.issue_move_command(_selected_entity_id, target_position)
+	var feedback := RustBackend.issue_move_command(_selected_unit_id, target_position)
 	if !bool(feedback.get("accepted", false)):
 		push_warning("Rust move command rejected: %s %s" % [
 			feedback.get("rejected_reason", "unknown"),
@@ -425,13 +425,13 @@ func _issue_move_command(screen_position: Vector2) -> void:
 
 
 func _issue_stop_command() -> void:
-	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
 		return
-	if !_selected_entity_can_control():
-		push_warning("Selected entity is not controlled by this player.")
+	if !_selected_unit_can_control():
+		push_warning("Selected unit is not controlled by this player.")
 		return
 
-	var feedback := RustBackend.issue_stop_command(_selected_entity_id)
+	var feedback := RustBackend.issue_stop_command(_selected_unit_id)
 	if !bool(feedback.get("accepted", false)):
 		push_warning("Rust stop command rejected: %s %s" % [
 			feedback.get("rejected_reason", "unknown"),
@@ -442,15 +442,15 @@ func _issue_stop_command() -> void:
 	_stop_command_button.disabled = true
 
 
-func _entity_snapshot_position(entity: Dictionary) -> Vector2:
+func _unit_snapshot_position(unit: Dictionary) -> Vector2:
 	return Vector2(
-		float(entity.get("x", 0.0)),
-		float(entity.get("y", 0.0))
+		float(unit.get("x", 0.0)),
+		float(unit.get("y", 0.0))
 	)
 
 
-func _entity_move_target(entity: Dictionary) -> Dictionary:
-	var move_target_value: Variant = entity.get("move_target", {})
+func _unit_move_target(unit: Dictionary) -> Dictionary:
+	var move_target_value: Variant = unit.get("move_target", {})
 	if typeof(move_target_value) != TYPE_DICTIONARY:
 		return {}
 	var move_target: Dictionary = move_target_value
@@ -469,38 +469,38 @@ func _screen_to_world_position(screen_position: Vector2) -> Vector2:
 
 
 func _refresh_selection_visuals() -> void:
-	for entity_id in _entity_nodes.keys():
-		var node: Node2D = _entity_nodes[entity_id]
+	for unit_id in _unit_nodes.keys():
+		var node: Node2D = _unit_nodes[unit_id]
 		var selection: Line2D = node.get_node("Selection")
-		selection.visible = int(entity_id) == _selected_entity_id
+		selection.visible = int(unit_id) == _selected_unit_id
 
 
 func _refresh_command_controls() -> void:
-	_stop_command_button.disabled = !_selected_entity_can_stop()
+	_stop_command_button.disabled = !_selected_unit_can_stop()
 
 
-func _selected_entity_can_stop() -> bool:
-	if !_selected_entity_can_control():
+func _selected_unit_can_stop() -> bool:
+	if !_selected_unit_can_control():
 		return false
 
-	var entity: Dictionary = _entity_snapshots[_selected_entity_id]
-	return bool(entity.get("is_moving", false))
+	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
+	return bool(unit.get("is_moving", false))
 
 
-func _selected_entity_can_control() -> bool:
-	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+func _selected_unit_can_control() -> bool:
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
 		return false
 
-	var entity: Dictionary = _entity_snapshots[_selected_entity_id]
-	return bool(entity.get("can_control", false))
+	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
+	return bool(unit.get("can_control", false))
 
 
 func _control_mode_summary() -> String:
-	var controllable_count := _controllable_entity_count()
+	var controllable_count := _controllable_unit_count()
 	if controllable_count == 0:
 		return "readonly"
-	if _selected_entity_id != 0:
-		if _selected_entity_can_control():
+	if _selected_unit_id != 0:
+		if _selected_unit_can_control():
 			return "owned"
 		return "readonly"
 	return "owned:%s" % controllable_count
@@ -516,37 +516,37 @@ func _room_summary(room: Dictionary) -> String:
 	return "phase:%s team:%s slots:%s" % [phase, local_team, player_slots.size()]
 
 
-func _selected_entity_summary() -> String:
-	if _selected_entity_id == 0 || !_entity_snapshots.has(_selected_entity_id):
+func _selected_unit_summary() -> String:
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
 		return "none"
 
-	var entity: Dictionary = _entity_snapshots[_selected_entity_id]
+	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
 	return "%s hp:%s/%s team:%s" % [
-		entity.get("display_name", entity.get("kind", "unit")),
-		entity.get("health", 0),
-		entity.get("max_health", 0),
-		entity.get("team", 0),
+		unit.get("display_name", unit.get("kind", "unit")),
+		unit.get("health", 0),
+		unit.get("max_health", 0),
+		unit.get("team", 0),
 	]
 
 
-func _controllable_entity_count() -> int:
+func _controllable_unit_count() -> int:
 	var controllable_count := 0
-	for entity_value in _entity_snapshots.values():
-		if typeof(entity_value) != TYPE_DICTIONARY:
+	for unit_value in _unit_snapshots.values():
+		if typeof(unit_value) != TYPE_DICTIONARY:
 			continue
-		var entity: Dictionary = entity_value
-		if bool(entity.get("can_control", false)):
+		var unit: Dictionary = unit_value
+		if bool(unit.get("can_control", false)):
 			controllable_count += 1
 	return controllable_count
 
 
 func _movement_command_summary() -> String:
 	var moving_count := 0
-	for entity_value in _entity_snapshots.values():
-		if typeof(entity_value) != TYPE_DICTIONARY:
+	for unit_value in _unit_snapshots.values():
+		if typeof(unit_value) != TYPE_DICTIONARY:
 			continue
-		var entity: Dictionary = entity_value
-		if bool(entity.get("is_moving", false)):
+		var unit: Dictionary = unit_value
+		if bool(unit.get("is_moving", false)):
 			moving_count += 1
 
 	if moving_count == 0:
@@ -573,13 +573,13 @@ func _command_lifecycle_summary(commands: Dictionary) -> String:
 	]
 
 
-func _get_or_create_entity_node(entity_id: int) -> Node2D:
-	if _entity_nodes.has(entity_id):
-		return _entity_nodes[entity_id]
+func _get_or_create_unit_node(unit_id: int) -> Node2D:
+	if _unit_nodes.has(unit_id):
+		return _unit_nodes[unit_id]
 
 	var unit_node := Node2D.new()
-	unit_node.name = "Entity%s" % entity_id
-	unit_node.z_index = ENTITY_Z
+	unit_node.name = "Unit%s" % unit_id
+	unit_node.z_index = UNIT_Z
 
 	var body := ColorRect.new()
 	body.name = "Body"
@@ -602,7 +602,7 @@ func _get_or_create_entity_node(entity_id: int) -> Node2D:
 	unit_node.add_child(label)
 
 	_world.add_child(unit_node)
-	_entity_nodes[entity_id] = unit_node
+	_unit_nodes[unit_id] = unit_node
 	return unit_node
 
 
@@ -644,13 +644,13 @@ func _clear_children(node: Node) -> void:
 		child.queue_free()
 
 
-func _update_or_create_move_target_marker(entity_id: int, target_position: Vector2) -> void:
+func _update_or_create_move_target_marker(unit_id: int, target_position: Vector2) -> void:
 	var marker: Line2D
-	if _move_target_markers.has(entity_id):
-		marker = _move_target_markers[entity_id]
+	if _move_target_markers.has(unit_id):
+		marker = _move_target_markers[unit_id]
 	else:
 		marker = Line2D.new()
-		marker.name = "MoveTarget%s" % entity_id
+		marker.name = "MoveTarget%s" % unit_id
 		marker.z_index = MOVE_TARGET_Z
 		marker.width = 2.0
 		marker.default_color = Color(0.35, 0.72, 1.0, 0.9)
@@ -662,26 +662,26 @@ func _update_or_create_move_target_marker(entity_id: int, target_position: Vecto
 			Vector2(0.0, 8.0),
 		])
 		_world.add_child(marker)
-		_move_target_markers[entity_id] = marker
+		_move_target_markers[unit_id] = marker
 
 	marker.position = target_position
 
 
-func _sync_move_target_marker(entity_id: int, entity: Dictionary) -> void:
-	var move_target := _entity_move_target(entity)
+func _sync_move_target_marker(unit_id: int, unit: Dictionary) -> void:
+	var move_target := _unit_move_target(unit)
 	if move_target.is_empty():
-		_remove_move_target_marker(entity_id)
+		_remove_move_target_marker(unit_id)
 		return
 
-	_update_or_create_move_target_marker(entity_id, _move_target_position(move_target))
+	_update_or_create_move_target_marker(unit_id, _move_target_position(move_target))
 
 
-func _remove_move_target_marker(entity_id: int) -> void:
-	if !_move_target_markers.has(entity_id):
+func _remove_move_target_marker(unit_id: int) -> void:
+	if !_move_target_markers.has(unit_id):
 		return
 
-	var marker: Node = _move_target_markers[entity_id]
-	_move_target_markers.erase(entity_id)
+	var marker: Node = _move_target_markers[unit_id]
+	_move_target_markers.erase(unit_id)
 	marker.queue_free()
 
 
@@ -705,15 +705,15 @@ func _selection_points(radius: float) -> PackedVector2Array:
 	])
 
 
-func _remove_missing_entities(alive_entity_ids: Dictionary) -> void:
-	for entity_id in _entity_nodes.keys():
-		if alive_entity_ids.has(entity_id):
+func _remove_missing_units(alive_unit_ids: Dictionary) -> void:
+	for unit_id in _unit_nodes.keys():
+		if alive_unit_ids.has(unit_id):
 			continue
 
-		var node: Node = _entity_nodes[entity_id]
-		_entity_nodes.erase(entity_id)
-		_entity_snapshots.erase(entity_id)
-		_remove_move_target_marker(int(entity_id))
-		if int(entity_id) == _selected_entity_id:
-			_selected_entity_id = 0
+		var node: Node = _unit_nodes[unit_id]
+		_unit_nodes.erase(unit_id)
+		_unit_snapshots.erase(unit_id)
+		_remove_move_target_marker(int(unit_id))
+		if int(unit_id) == _selected_unit_id:
+			_selected_unit_id = 0
 		node.queue_free()

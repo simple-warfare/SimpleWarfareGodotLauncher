@@ -38,20 +38,20 @@ func _refresh_status() -> void:
 	var rust_state := "ready" if AppState.rust_ready else "unavailable"
 	var assets_state := "ready" if AppState.assets_ready else "unavailable"
 	var snapshot := RustBackend.get_frontend_snapshot()
-	var entities: Array = snapshot.get("entities", [])
-	var first_entity_text := "none"
+	var units: Array = snapshot.get("units", [])
+	var first_unit_text := "none"
 
-	if !entities.is_empty() && typeof(entities[0]) == TYPE_DICTIONARY:
-		var first_entity: Dictionary = entities[0]
-		first_entity_text = "%s#%s pos=(%s, %s) hp=%s" % [
-			first_entity.get("kind", "unknown"),
-			first_entity.get("id", 0),
-			first_entity.get("x", 0.0),
-			first_entity.get("y", 0.0),
-			first_entity.get("health", 0),
+	if !units.is_empty() && typeof(units[0]) == TYPE_DICTIONARY:
+		var first_unit: Dictionary = units[0]
+		first_unit_text = "%s#%s pos=(%s, %s) hp=%s" % [
+			first_unit.get("kind", "unknown"),
+			first_unit.get("id", 0),
+			first_unit.get("x", 0.0),
+			first_unit.get("y", 0.0),
+			first_unit.get("health", 0),
 		]
 
-	_status_value.text = "Rust: %s | Assets: %s | Mode: %s | Result: %s\nSnapshot: status=%s server_tick=%s client_tick=%s entities=%s first=%s" % [
+	_status_value.text = "Rust: %s | Assets: %s | Mode: %s | Result: %s\nSnapshot: status=%s server_tick=%s client_tick=%s units=%s first=%s" % [
 		rust_state,
 		assets_state,
 		snapshot.get("mode", RustBackend.get_runtime_mode()),
@@ -59,8 +59,8 @@ func _refresh_status() -> void:
 		snapshot.get("status", "unknown"),
 		snapshot.get("server_tick", 0),
 		snapshot.get("client_tick", 0),
-		entities.size(),
-		first_entity_text,
+		units.size(),
+		first_unit_text,
 	]
 
 	var error_detail := str(RustBackend.get_last_error_detail())

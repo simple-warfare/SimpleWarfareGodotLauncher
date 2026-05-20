@@ -361,7 +361,7 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 			"player_slots": [],
 		},
 		"objects": [],
-		"entities": [],
+		"units": [],
 	}
 
 
