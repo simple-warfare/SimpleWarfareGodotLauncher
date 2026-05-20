@@ -221,16 +221,7 @@ func _render_tile_layer(root: Node2D, layer: Dictionary, tile_definitions: Dicti
 	else:
 		var default_tile := int(layer.get("default_tile", 0))
 		var default_definition := _tile_definition(tile_definitions, str(layer.get("tileset", "")), default_tile)
-		if _tile_has_texture(default_definition):
-			for y in range(height):
-				for x in range(width):
-					_add_tile(layer_node, Vector2(x * tile_size, y * tile_size), tile_size, default_definition)
-		else:
-			var fill := ColorRect.new()
-			fill.position = Vector2.ZERO
-			fill.size = map_size
-			fill.color = _tile_color(default_definition, default_tile)
-			layer_node.add_child(fill)
+		_add_tile_fill(layer_node, map_size, _tile_color(default_definition, default_tile))
 
 	for tile_value in _map_array(layer, "tiles"):
 		if typeof(tile_value) != TYPE_DICTIONARY:
@@ -353,6 +344,14 @@ func _add_tile(parent: Node, position: Vector2, tile_size: float, tile_definitio
 			return
 
 	_add_tile_rect(parent, position, tile_size, _tile_color(tile_definition, 0))
+
+
+func _add_tile_fill(parent: Node, map_size: Vector2, color: Color) -> void:
+	var fill := ColorRect.new()
+	fill.position = Vector2.ZERO
+	fill.size = map_size
+	fill.color = color
+	parent.add_child(fill)
 
 
 func _load_tile_texture(relative_source: String) -> Texture2D:
