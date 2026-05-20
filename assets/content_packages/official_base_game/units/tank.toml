@@ -5,6 +5,7 @@ display_name = "Tank"
 max_hp = 210
 mass = 3000.0
 radius = 11.0
+tags = ["ground"]
 
 [movement]
 kind = "land"
