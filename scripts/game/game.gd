@@ -821,18 +821,20 @@ func _reconciliation_summary(commands: Dictionary) -> String:
 	var sequence := int(commands.get("last_reconciled_sequence", 0))
 	var round_trip_ticks := int(commands.get("last_reconciliation_round_trip_ticks", 0))
 	var target_error := float(commands.get("last_reconciliation_target_error", 0.0))
+	var position_error := float(commands.get("last_reconciliation_position_error", 0.0))
 	var error := str(commands.get("last_reconciliation_error", ""))
 	if !error.is_empty():
-		return "rec:%s/%s last:%s/%s status:%s rt:%s error:%s" % [
+		return "rec:%s/%s last:%s/%s status:%s rt:%s pos_err:%.2f error:%s" % [
 			reconciled_count,
 			mismatch_count,
 			command_id,
 			sequence,
 			status,
 			round_trip_ticks,
+			position_error,
 			error,
 		]
-	return "rec:%s/%s last:%s/%s status:%s rt:%s target_err:%.2f" % [
+	return "rec:%s/%s last:%s/%s status:%s rt:%s target_err:%.2f pos_err:%.2f" % [
 		reconciled_count,
 		mismatch_count,
 		command_id,
@@ -840,6 +842,7 @@ func _reconciliation_summary(commands: Dictionary) -> String:
 		status,
 		round_trip_ticks,
 		target_error,
+		position_error,
 	]
 
 
