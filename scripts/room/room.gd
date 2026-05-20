@@ -5,6 +5,7 @@ const SNAPSHOT_WARNING_SECONDS := 8.0
 @onready var _title: Label = %Title
 @onready var _status_value: Label = %StatusValue
 @onready var _local_value: Label = %LocalValue
+@onready var _content_value: Label = %ContentValue
 @onready var _slot_list: VBoxContainer = %SlotList
 @onready var _start_button: Button = %StartButton
 @onready var _diagnostics_button: Button = %DiagnosticsButton
@@ -75,8 +76,9 @@ func _refresh_from_snapshot() -> void:
 		"yes" if local_is_host else "no",
 		slots.size(),
 	]
+	_content_value.text = _content_summary(room, slots)
 
-	_start_button.disabled = !local_is_host || phase != "lobby" || _start_requested
+	_start_button.disabled = !local_is_host || phase != "lobby" || _start_requested || !_content_ready(room, slots)
 	_refresh_slots(slots)
 
 
@@ -136,6 +138,85 @@ func _refresh_slots(slots: Array) -> void:
 		_slot_list.add_child(_make_slot_label(_slot_summary(slot)))
 
 
+func _content_summary(room: Dictionary, slots: Array) -> String:
+	var protocol_version := int(room.get("protocol_version", 0))
+	var server_content := _room_content(room, "content")
+	var local_content := _room_content(room, "local_content")
+	var content_state := _content_state_summary(room, slots)
+	return "protocol=%s server=%s local=%s status=%s" % [
+		protocol_version,
+		_content_brief(server_content),
+		_content_brief(local_content),
+		content_state,
+	]
+
+
+func _room_content(room: Dictionary, key: String) -> Dictionary:
+	var content_value: Variant = room.get(key, {})
+	if typeof(content_value) != TYPE_DICTIONARY:
+		return {}
+	var content: Dictionary = content_value
+	return content
+
+
+func _content_brief(content: Dictionary) -> String:
+	if content.is_empty():
+		return "unknown"
+
+	var package_id := str(content.get("package_id", "unknown"))
+	var package_version := str(content.get("package_version", "unknown"))
+	var schema_version := int(content.get("schema_version", 0))
+	var lock_hash := _short_hash(str(content.get("package_lock_hash", "")))
+	return "%s@%s schema=%s lock=%s" % [
+		package_id,
+		package_version,
+		schema_version,
+		lock_hash,
+	]
+
+
+func _short_hash(value: String) -> String:
+	if value.is_empty():
+		return "unknown"
+	return value.substr(0, min(8, value.length()))
+
+
+func _content_state_summary(room: Dictionary, slots: Array) -> String:
+	var mismatch := str(room.get("content_mismatch", ""))
+	if !mismatch.is_empty():
+		return "mismatch %s" % mismatch
+
+	for slot_value in slots:
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+		var slot: Dictionary = slot_value
+		if !bool(slot.get("connected", false)):
+			continue
+		var status := str(slot.get("content_status", "unknown"))
+		if status != "match":
+			return "waiting %s=%s" % [slot.get("player_key", "unknown"), status]
+
+	return "match"
+
+
+func _content_ready(room: Dictionary, slots: Array) -> bool:
+	if !str(room.get("content_mismatch", "")).is_empty():
+		return false
+	if slots.is_empty():
+		return true
+
+	for slot_value in slots:
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+		var slot: Dictionary = slot_value
+		if !bool(slot.get("connected", false)):
+			continue
+		if str(slot.get("content_status", "unknown")) != "match":
+			return false
+
+	return true
+
+
 func _slot_summary(slot: Dictionary) -> String:
 	var team_id := int(slot.get("team_id", -1))
 	var team := "none"
@@ -148,10 +229,17 @@ func _slot_summary(slot: Dictionary) -> String:
 	if bool(slot.get("is_host", false)):
 		flags.append("host")
 	flags.append("connected" if bool(slot.get("connected", false)) else "offline")
+	var protocol_version := int(slot.get("protocol_version", 0))
+	var content_status := str(slot.get("content_status", "unknown"))
+	var mismatch := str(slot.get("content_mismatch", ""))
+	if !mismatch.is_empty():
+		content_status = "%s:%s" % [content_status, mismatch]
 
-	return "%s | team=%s | %s" % [
+	return "%s | team=%s | protocol=%s | content=%s | %s" % [
 		slot.get("player_key", "unknown"),
 		team,
+		"unknown" if protocol_version == 0 else str(protocol_version),
+		content_status,
 		", ".join(flags),
 	]
 

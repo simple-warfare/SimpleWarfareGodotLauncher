@@ -53,6 +53,12 @@ layout_mode = 2
 text = "player=none team=none host=no slots=0"
 autowrap_mode = 3
 
+[node name="ContentValue" type="Label" parent="Panel/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "content=waiting"
+autowrap_mode = 3
+
 [node name="SlotList" type="VBoxContainer" parent="Panel/Content"]
 unique_name_in_owner = true
 layout_mode = 2
