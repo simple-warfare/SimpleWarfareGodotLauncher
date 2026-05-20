@@ -793,18 +793,53 @@ func _command_lifecycle_summary(commands: Dictionary) -> String:
 	var result_status := str(commands.get("last_result_status", ""))
 	var rejected_reason := str(commands.get("last_rejected_reason", ""))
 	if result_status == "rejected" && rejected_reason != "":
-		return "pending:%s ack:%s result:%s rejected:%s" % [
+		return "pending:%s ack:%s result:%s rejected:%s %s" % [
 			commands.get("pending_count", 0),
 			commands.get("acknowledged_count", 0),
 			result_status,
 			rejected_reason,
+			_reconciliation_summary(commands),
 		]
-	return "pending:%s ack:%s result:%s applied:%s/%s" % [
+	return "pending:%s ack:%s result:%s applied:%s/%s %s" % [
 		commands.get("pending_count", 0),
 		commands.get("acknowledged_count", 0),
 		result_status,
 		commands.get("last_applied_command_id", 0),
 		commands.get("last_applied_sequence", 0),
+		_reconciliation_summary(commands),
+	]
+
+
+func _reconciliation_summary(commands: Dictionary) -> String:
+	var reconciled_count := int(commands.get("reconciled_command_count", 0))
+	var mismatch_count := int(commands.get("reconciliation_mismatch_count", 0))
+	var status := str(commands.get("last_reconciliation_status", ""))
+	if reconciled_count == 0 && status.is_empty():
+		return "rec:none"
+
+	var command_id := int(commands.get("last_reconciled_command_id", 0))
+	var sequence := int(commands.get("last_reconciled_sequence", 0))
+	var round_trip_ticks := int(commands.get("last_reconciliation_round_trip_ticks", 0))
+	var target_error := float(commands.get("last_reconciliation_target_error", 0.0))
+	var error := str(commands.get("last_reconciliation_error", ""))
+	if !error.is_empty():
+		return "rec:%s/%s last:%s/%s status:%s rt:%s error:%s" % [
+			reconciled_count,
+			mismatch_count,
+			command_id,
+			sequence,
+			status,
+			round_trip_ticks,
+			error,
+		]
+	return "rec:%s/%s last:%s/%s status:%s rt:%s target_err:%.2f" % [
+		reconciled_count,
+		mismatch_count,
+		command_id,
+		sequence,
+		status,
+		round_trip_ticks,
+		target_error,
 	]
 
 
