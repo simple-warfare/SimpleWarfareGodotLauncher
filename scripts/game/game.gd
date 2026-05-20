@@ -10,6 +10,7 @@ const SELECTION_PADDING := 6.0
 @onready var _hud: Control = $HudLayer/Hud
 @onready var _status_value: Label = %StatusValue
 @onready var _stop_command_button: Button = %StopCommandButton
+@onready var _diagnostics_button: Button = %DiagnosticsButton
 
 var _entity_nodes: Dictionary = {}
 var _entity_snapshots: Dictionary = {}
@@ -23,6 +24,7 @@ var _camera_max_zoom := 2.0
 
 func _ready() -> void:
 	_stop_command_button.pressed.connect(_issue_stop_command)
+	_diagnostics_button.pressed.connect(RustBackend.open_diagnostics_panel)
 	_refresh_from_snapshot()
 
 

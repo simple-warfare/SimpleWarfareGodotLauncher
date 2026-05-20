@@ -7,6 +7,7 @@ const SNAPSHOT_WARNING_SECONDS := 8.0
 @onready var _local_value: Label = %LocalValue
 @onready var _slot_list: VBoxContainer = %SlotList
 @onready var _start_button: Button = %StartButton
+@onready var _diagnostics_button: Button = %DiagnosticsButton
 @onready var _leave_button: Button = %LeaveButton
 
 var _wait_seconds := 0.0
@@ -17,6 +18,7 @@ var _routing_to_game := false
 
 func _ready() -> void:
 	_start_button.pressed.connect(_start_game)
+	_diagnostics_button.pressed.connect(RustBackend.open_diagnostics_panel)
 	_leave_button.pressed.connect(_leave_room)
 	_refresh_from_snapshot()
 

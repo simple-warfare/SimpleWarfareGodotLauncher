@@ -7,6 +7,7 @@ const DEFAULT_SERVER_ADDR := "127.0.0.1:5888"
 @onready var _host_button: Button = %HostButton
 @onready var _join_address_input: LineEdit = %JoinAddressInput
 @onready var _join_button: Button = %JoinButton
+@onready var _diagnostics_button: Button = %DiagnosticsButton
 @onready var _mods_button: Button = %ModsButton
 @onready var _settings_button: Button = %SettingsButton
 @onready var _quit_button: Button = %QuitButton
@@ -17,6 +18,7 @@ func _ready() -> void:
 	_singleplayer_button.pressed.connect(_start_singleplayer)
 	_host_button.pressed.connect(_start_host)
 	_join_button.pressed.connect(_join_remote_game)
+	_diagnostics_button.pressed.connect(RustBackend.open_diagnostics_panel)
 	_mods_button.pressed.connect(_open_mods)
 	_settings_button.pressed.connect(_open_settings)
 	_quit_button.pressed.connect(_quit)

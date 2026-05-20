@@ -7,6 +7,9 @@ var _rusty_core: Object
 var _available := false
 var _last_result := "not_initialized"
 var _last_error_detail := ""
+var _diagnostics_window: Window
+var _diagnostics_text: TextEdit
+var _diagnostics_status_label: Label
 
 
 func _ready() -> void:
@@ -94,11 +97,59 @@ func get_latest_diagnostic_summary() -> String:
 
 
 func get_recent_diagnostics_text(limit: int = 5) -> String:
-	var entries := _diagnostic_entries()
-	if entries.is_empty() || limit <= 0:
+	var diagnostics := get_diagnostics_snapshot()
+	return _format_diagnostics_snapshot(diagnostics, limit)
+
+
+func open_diagnostics_panel() -> void:
+	if _diagnostics_window == null || !is_instance_valid(_diagnostics_window):
+		_create_diagnostics_panel()
+
+	_refresh_diagnostics_panel()
+	_diagnostics_window.popup_centered(Vector2i(920, 640))
+
+
+func export_diagnostics() -> String:
+	var export_path := "user://rust_diagnostics.log"
+	var file := FileAccess.open(export_path, FileAccess.WRITE)
+	if file == null:
+		var error_message := "failed to export diagnostics: %s" % error_string(FileAccess.get_open_error())
+		_set_diagnostics_status(error_message)
 		return ""
 
+	file.store_string(get_recent_diagnostics_text(128))
+	var global_path := ProjectSettings.globalize_path(export_path)
+	_set_diagnostics_status("exported to %s" % global_path)
+	return global_path
+
+
+func copy_diagnostics_to_clipboard() -> void:
+	DisplayServer.clipboard_set(get_recent_diagnostics_text(128))
+	_set_diagnostics_status("copied diagnostics to clipboard")
+
+
+func clear_diagnostics() -> void:
+	if _available:
+		_rusty_core.call("clear_diagnostics")
+	_refresh_diagnostics_panel()
+
+
+func _format_diagnostics_snapshot(diagnostics: Dictionary, limit: int) -> String:
+	var entries := _diagnostic_entries_from_snapshot(diagnostics)
+	if entries.is_empty() || limit <= 0:
+		var latest_panic := str(diagnostics.get("latest_panic", ""))
+		if latest_panic.is_empty():
+			return ""
+		return "latest_panic=%s" % latest_panic
+
 	var lines := PackedStringArray()
+	var dropped_count := int(diagnostics.get("dropped_count", 0))
+	var latest_panic := str(diagnostics.get("latest_panic", ""))
+	if dropped_count > 0:
+		lines.append("dropped_count=%s" % dropped_count)
+	if !latest_panic.is_empty():
+		lines.append("latest_panic=%s" % latest_panic)
+
 	var start_index: int = max(0, entries.size() - limit)
 	for index in range(start_index, entries.size()):
 		var entry_value: Variant = entries[index]
@@ -114,11 +165,6 @@ func get_recent_diagnostics_text(limit: int = 5) -> String:
 		])
 
 	return "\n".join(lines)
-
-
-func clear_diagnostics() -> void:
-	if _available:
-		_rusty_core.call("clear_diagnostics")
 
 
 func get_frontend_snapshot() -> Dictionary:
@@ -318,8 +364,79 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 	}
 
 
+func _create_diagnostics_panel() -> void:
+	_diagnostics_window = Window.new()
+	_diagnostics_window.title = "Rust Diagnostics"
+	_diagnostics_window.size = Vector2i(920, 640)
+	_diagnostics_window.min_size = Vector2i(640, 420)
+	_diagnostics_window.close_requested.connect(_close_diagnostics_panel)
+	get_tree().root.add_child(_diagnostics_window)
+
+	var root := VBoxContainer.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_diagnostics_window.add_child(root)
+
+	var header := Label.new()
+	header.text = "Recent Rust diagnostics"
+	header.add_theme_font_size_override("font_size", 18)
+	root.add_child(header)
+
+	_diagnostics_text = TextEdit.new()
+	_diagnostics_text.editable = false
+	_diagnostics_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_diagnostics_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(_diagnostics_text)
+
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 8)
+	root.add_child(actions)
+
+	actions.add_child(_make_diagnostics_button("Refresh", _refresh_diagnostics_panel))
+	actions.add_child(_make_diagnostics_button("Copy", copy_diagnostics_to_clipboard))
+	actions.add_child(_make_diagnostics_button("Export", export_diagnostics))
+	actions.add_child(_make_diagnostics_button("Clear", clear_diagnostics))
+	actions.add_child(_make_diagnostics_button("Close", _close_diagnostics_panel))
+
+	_diagnostics_status_label = Label.new()
+	_diagnostics_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	root.add_child(_diagnostics_status_label)
+
+
+func _make_diagnostics_button(text: String, callback: Callable) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.pressed.connect(callback)
+	return button
+
+
+func _refresh_diagnostics_panel() -> void:
+	if _diagnostics_text == null || !is_instance_valid(_diagnostics_text):
+		return
+
+	var text := get_recent_diagnostics_text(128)
+	if text.is_empty():
+		text = "No Rust diagnostics recorded."
+	_diagnostics_text.text = text
+
+
+func _close_diagnostics_panel() -> void:
+	if _diagnostics_window != null && is_instance_valid(_diagnostics_window):
+		_diagnostics_window.hide()
+
+
+func _set_diagnostics_status(message: String) -> void:
+	if _diagnostics_status_label != null && is_instance_valid(_diagnostics_status_label):
+		_diagnostics_status_label.text = message
+
+
 func _diagnostic_entries() -> Array:
 	var diagnostics := get_diagnostics_snapshot()
+	return _diagnostic_entries_from_snapshot(diagnostics)
+
+
+func _diagnostic_entries_from_snapshot(diagnostics: Dictionary) -> Array:
 	var entries_value: Variant = diagnostics.get("entries", [])
 	if typeof(entries_value) != TYPE_ARRAY:
 		return []
