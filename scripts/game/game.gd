@@ -48,6 +48,7 @@ func _refresh_from_snapshot() -> void:
 	var units: Array = snapshot.get("units", [])
 	var objects: Array = snapshot.get("objects", [])
 	var map: Dictionary = _snapshot_map(snapshot)
+	var resources: Dictionary = _snapshot_resources(snapshot)
 	var commands: Dictionary = _snapshot_commands(snapshot)
 	var room: Dictionary = _snapshot_room(snapshot)
 	_refresh_map(map)
@@ -69,10 +70,11 @@ func _refresh_from_snapshot() -> void:
 
 	_remove_missing_units(alive_unit_ids)
 	_refresh_command_controls()
-	_status_value.text = "map=%s mode=%s room=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s move=%s commands=%s" % [
+	_status_value.text = "map=%s mode=%s room=%s resources=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s move=%s commands=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
 		_room_summary(room),
+		_resource_summary(resources),
 		_control_mode_summary(),
 		snapshot.get("status", "unknown"),
 		snapshot.get("server_tick", 0),
@@ -101,6 +103,14 @@ func _snapshot_commands(snapshot: Dictionary) -> Dictionary:
 		return {}
 	var commands: Dictionary = commands_value
 	return commands
+
+
+func _snapshot_resources(snapshot: Dictionary) -> Dictionary:
+	var resources_value: Variant = snapshot.get("resources", {})
+	if typeof(resources_value) != TYPE_DICTIONARY:
+		return {}
+	var resources: Dictionary = resources_value
+	return resources
 
 
 func _snapshot_room(snapshot: Dictionary) -> Dictionary:
@@ -514,6 +524,37 @@ func _room_summary(room: Dictionary) -> String:
 	if local_team_id >= 0:
 		local_team = str(local_team_id)
 	return "phase:%s team:%s slots:%s" % [phase, local_team, player_slots.size()]
+
+
+func _resource_summary(resources: Dictionary) -> String:
+	var team_id := int(resources.get("team_id", -1))
+	if team_id < 0:
+		return "none"
+
+	var amounts := _map_array(resources, "amounts")
+	if amounts.is_empty():
+		return "team:%s empty" % team_id
+
+	var parts := PackedStringArray()
+	for amount_value in amounts:
+		if typeof(amount_value) != TYPE_DICTIONARY:
+			continue
+		var amount: Dictionary = amount_value
+		parts.append("%s=%s" % [
+			_short_resource_name(str(amount.get("resource", "unknown"))),
+			amount.get("amount", 0),
+		])
+
+	if parts.is_empty():
+		return "team:%s empty" % team_id
+	return "team:%s %s" % [team_id, " ".join(parts)]
+
+
+func _short_resource_name(resource: String) -> String:
+	var separator_index := resource.find(":")
+	if separator_index < 0 || separator_index == resource.length() - 1:
+		return resource
+	return resource.substr(separator_index + 1)
 
 
 func _selected_unit_summary() -> String:
