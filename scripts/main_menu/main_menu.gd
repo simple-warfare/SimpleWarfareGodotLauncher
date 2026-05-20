@@ -65,6 +65,10 @@ func _refresh_status() -> void:
 	if !error_detail.is_empty():
 		_status_value.text += "\nError: %s" % error_detail
 
+	var diagnostics_text := RustBackend.get_recent_diagnostics_text(4)
+	if !diagnostics_text.is_empty():
+		_status_value.text += "\nDiagnostics:\n%s" % diagnostics_text
+
 
 func _start_singleplayer() -> void:
 	var result := RustBackend.start_singleplayer()

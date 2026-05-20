@@ -69,6 +69,9 @@ func _refresh_from_snapshot() -> void:
 		_movement_command_summary(),
 		_command_lifecycle_summary(commands),
 	]
+	var latest_diagnostic := RustBackend.get_latest_diagnostic_summary()
+	if !latest_diagnostic.is_empty():
+		_status_value.text += "\ndiag=%s" % latest_diagnostic
 
 
 func _snapshot_map(snapshot: Dictionary) -> Dictionary:

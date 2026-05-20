@@ -46,6 +46,9 @@ func _refresh_from_snapshot() -> void:
 		client_tick,
 		RustBackend.get_last_result(),
 	]
+	var latest_diagnostic := RustBackend.get_latest_diagnostic_summary()
+	if !latest_diagnostic.is_empty():
+		_status_value.text += "\ndiag=%s" % latest_diagnostic
 
 	if AppState.launch_mode == AppState.LaunchMode.CLIENT && server_tick <= 0:
 		_status_value.text += "\nwaiting for server %s (%.1fs)" % [AppState.server_addr, _wait_seconds]

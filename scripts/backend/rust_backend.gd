@@ -65,6 +65,62 @@ func get_last_error_detail() -> String:
 	return _last_error_detail
 
 
+func get_diagnostics_snapshot() -> Dictionary:
+	if !_available:
+		return _empty_diagnostics_snapshot()
+
+	var diagnostics = _rusty_core.call("get_diagnostics_snapshot")
+	if typeof(diagnostics) != TYPE_DICTIONARY:
+		return _empty_diagnostics_snapshot()
+
+	return diagnostics
+
+
+func get_latest_diagnostic_summary() -> String:
+	var entries := _diagnostic_entries()
+	if entries.is_empty():
+		return ""
+
+	var entry_value: Variant = entries[entries.size() - 1]
+	if typeof(entry_value) != TYPE_DICTIONARY:
+		return ""
+
+	var entry: Dictionary = entry_value
+	return "#%s %s %s" % [
+		entry.get("sequence", 0),
+		entry.get("level", "info"),
+		entry.get("message", ""),
+	]
+
+
+func get_recent_diagnostics_text(limit: int = 5) -> String:
+	var entries := _diagnostic_entries()
+	if entries.is_empty() || limit <= 0:
+		return ""
+
+	var lines := PackedStringArray()
+	var start_index: int = max(0, entries.size() - limit)
+	for index in range(start_index, entries.size()):
+		var entry_value: Variant = entries[index]
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+
+		var entry: Dictionary = entry_value
+		lines.append("#%s %s %s: %s" % [
+			entry.get("sequence", 0),
+			entry.get("level", "info"),
+			entry.get("target", "rust"),
+			entry.get("message", ""),
+		])
+
+	return "\n".join(lines)
+
+
+func clear_diagnostics() -> void:
+	if _available:
+		_rusty_core.call("clear_diagnostics")
+
+
 func get_frontend_snapshot() -> Dictionary:
 	if !_available:
 		return _empty_frontend_snapshot("unavailable")
@@ -259,4 +315,23 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 			"player_slots": [],
 		},
 		"entities": [],
+	}
+
+
+func _diagnostic_entries() -> Array:
+	var diagnostics := get_diagnostics_snapshot()
+	var entries_value: Variant = diagnostics.get("entries", [])
+	if typeof(entries_value) != TYPE_ARRAY:
+		return []
+
+	var entries: Array = entries_value
+	return entries
+
+
+func _empty_diagnostics_snapshot() -> Dictionary:
+	return {
+		"capacity": 0,
+		"dropped_count": 0,
+		"latest_panic": "",
+		"entries": [],
 	}
