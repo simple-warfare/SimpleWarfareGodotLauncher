@@ -274,6 +274,14 @@ func issue_stop_command(entity_id: int) -> Dictionary:
 	})
 
 
+func issue_produce_unit_command(producer_entity_id: int, unit: String) -> Dictionary:
+	return submit_player_command({
+		"type": "produce_unit",
+		"producer_entity_id": producer_entity_id,
+		"unit": unit,
+	})
+
+
 func issue_start_game_command() -> Dictionary:
 	return submit_player_command({
 		"type": "start_game",

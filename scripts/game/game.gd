@@ -15,6 +15,7 @@ const UNIT_Z := 100
 @onready var _hud: Control = $HudLayer/Hud
 @onready var _status_value: Label = %StatusValue
 @onready var _stop_command_button: Button = %StopCommandButton
+@onready var _produce_command_button: Button = %ProduceCommandButton
 @onready var _diagnostics_button: Button = %DiagnosticsButton
 
 var _unit_nodes: Dictionary = {}
@@ -33,6 +34,7 @@ var _camera_max_zoom := 2.0
 
 func _ready() -> void:
 	_stop_command_button.pressed.connect(_issue_stop_command)
+	_produce_command_button.pressed.connect(_issue_produce_unit_command)
 	_diagnostics_button.pressed.connect(RustBackend.open_diagnostics_panel)
 	_refresh_from_snapshot()
 
@@ -70,7 +72,7 @@ func _refresh_from_snapshot() -> void:
 
 	_remove_missing_units(alive_unit_ids)
 	_refresh_command_controls()
-	_status_value.text = "map=%s mode=%s room=%s resources=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s move=%s commands=%s" % [
+	_status_value.text = "map=%s mode=%s room=%s resources=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s move=%s production=%s commands=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
 		_room_summary(room),
@@ -82,6 +84,7 @@ func _refresh_from_snapshot() -> void:
 		units.size(),
 		_selected_unit_summary(),
 		_movement_command_summary(),
+		_production_command_summary(),
 		_command_lifecycle_summary(commands),
 	]
 	var latest_diagnostic := RustBackend.get_latest_diagnostic_summary()
@@ -452,6 +455,30 @@ func _issue_stop_command() -> void:
 	_stop_command_button.disabled = true
 
 
+func _issue_produce_unit_command() -> void:
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
+		return
+	if !_selected_unit_can_control():
+		push_warning("Selected unit is not controlled by this player.")
+		return
+
+	var build_option := _selected_unit_primary_build_option()
+	if build_option.is_empty():
+		push_warning("Selected unit has no production option.")
+		return
+
+	var unit := str(build_option.get("unit", ""))
+	var feedback := RustBackend.issue_produce_unit_command(_selected_unit_id, unit)
+	if !bool(feedback.get("accepted", false)):
+		push_warning("Rust produce command rejected: %s %s" % [
+			feedback.get("rejected_reason", "unknown"),
+			feedback.get("detail", ""),
+		])
+		return
+
+	_produce_command_button.disabled = true
+
+
 func _unit_snapshot_position(unit: Dictionary) -> Vector2:
 	return Vector2(
 		float(unit.get("x", 0.0)),
@@ -487,6 +514,12 @@ func _refresh_selection_visuals() -> void:
 
 func _refresh_command_controls() -> void:
 	_stop_command_button.disabled = !_selected_unit_can_stop()
+	var build_option := _selected_unit_primary_build_option()
+	if build_option.is_empty():
+		_produce_command_button.text = "Produce"
+	else:
+		_produce_command_button.text = "Produce %s" % _short_unit_name(str(build_option.get("display_name", build_option.get("unit", "unit"))))
+	_produce_command_button.disabled = !_selected_unit_can_produce()
 
 
 func _selected_unit_can_stop() -> bool:
@@ -497,12 +530,42 @@ func _selected_unit_can_stop() -> bool:
 	return bool(unit.get("is_moving", false))
 
 
+func _selected_unit_can_produce() -> bool:
+	if !_selected_unit_can_control():
+		return false
+	if _selected_unit_primary_build_option().is_empty():
+		return false
+	return _selected_unit_production_queue().is_empty()
+
+
 func _selected_unit_can_control() -> bool:
 	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
 		return false
 
 	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
 	return bool(unit.get("can_control", false))
+
+
+func _selected_unit_primary_build_option() -> Dictionary:
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
+		return {}
+
+	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
+	for option_value in _map_array(unit, "build_options"):
+		if typeof(option_value) == TYPE_DICTIONARY:
+			var option: Dictionary = option_value
+			if !str(option.get("unit", "")).is_empty():
+				return option
+
+	return {}
+
+
+func _selected_unit_production_queue() -> Array:
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
+		return []
+
+	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
+	return _map_array(unit, "production_queue")
 
 
 func _control_mode_summary() -> String:
@@ -557,6 +620,13 @@ func _short_resource_name(resource: String) -> String:
 	return resource.substr(separator_index + 1)
 
 
+func _short_unit_name(unit: String) -> String:
+	var separator_index := unit.find(":")
+	if separator_index < 0 || separator_index == unit.length() - 1:
+		return unit
+	return unit.substr(separator_index + 1)
+
+
 func _selected_unit_summary() -> String:
 	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
 		return "none"
@@ -593,6 +663,42 @@ func _movement_command_summary() -> String:
 	if moving_count == 0:
 		return "none"
 	return "rust_snapshot:%s" % moving_count
+
+
+func _production_command_summary() -> String:
+	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
+		return "none"
+
+	var queue := _selected_unit_production_queue()
+	if !queue.is_empty() && typeof(queue[0]) == TYPE_DICTIONARY:
+		var entry: Dictionary = queue[0]
+		return "%s %.1fs" % [
+			_short_unit_name(str(entry.get("display_name", entry.get("unit", "unit")))),
+			float(entry.get("remaining_seconds", 0.0)),
+		]
+
+	var build_option := _selected_unit_primary_build_option()
+	if build_option.is_empty():
+		return "none"
+
+	var cost_parts := PackedStringArray()
+	for amount_value in _map_array(build_option, "cost"):
+		if typeof(amount_value) != TYPE_DICTIONARY:
+			continue
+		var amount: Dictionary = amount_value
+		cost_parts.append("%s=%s" % [
+			_short_resource_name(str(amount.get("resource", "unknown"))),
+			amount.get("amount", 0),
+		])
+
+	var cost_summary := "free"
+	if !cost_parts.is_empty():
+		cost_summary = " ".join(cost_parts)
+	return "%s %.1fs %s" % [
+		_short_unit_name(str(build_option.get("display_name", build_option.get("unit", "unit")))),
+		float(build_option.get("build_time_seconds", 0.0)),
+		cost_summary,
+	]
 
 
 func _command_lifecycle_summary(commands: Dictionary) -> String:

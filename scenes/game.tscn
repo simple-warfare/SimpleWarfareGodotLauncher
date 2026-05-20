@@ -45,6 +45,12 @@ layout_mode = 2
 disabled = true
 text = "Stop"
 
+[node name="ProduceCommandButton" type="Button" parent="HudLayer/Hud/Content/CommandBar"]
+unique_name_in_owner = true
+layout_mode = 2
+disabled = true
+text = "Produce"
+
 [node name="DiagnosticsButton" type="Button" parent="HudLayer/Hud/Content/CommandBar"]
 unique_name_in_owner = true
 layout_mode = 2
