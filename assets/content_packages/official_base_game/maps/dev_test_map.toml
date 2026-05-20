@@ -5,6 +5,86 @@ width = 64
 height = 64
 tile_size = 20
 
+[[tilesets]]
+id = "official:terrain"
+tile_width = 20
+tile_height = 20
+
+[[tilesets.tiles]]
+id = 0
+name = "grass"
+color = "#20442d"
+
+[[tilesets.tiles]]
+id = 1
+name = "road"
+color = "#4b4f45"
+
+[[tilesets.tiles]]
+id = 2
+name = "water"
+color = "#244760"
+blocked = true
+
+[[layers]]
+id = "ground"
+tileset = "official:terrain"
+z_index = 0
+default_tile = 0
+
+[[layers.tiles]]
+x = 5
+y = 12
+tile = 1
+
+[[layers.tiles]]
+x = 6
+y = 12
+tile = 1
+
+[[layers.tiles]]
+x = 7
+y = 12
+tile = 1
+
+[[layers.tiles]]
+x = 8
+y = 12
+tile = 1
+
+[[layers.tiles]]
+x = 14
+y = 10
+tile = 2
+
+[[layers.tiles]]
+x = 14
+y = 11
+tile = 2
+
+[[layers.tiles]]
+x = 15
+y = 10
+tile = 2
+
+[[layers.tiles]]
+x = 15
+y = 11
+tile = 2
+
+[[object_layers]]
+id = "resources"
+z_index = 10
+
+[[object_layers.objects]]
+id = "north_credits"
+kind = "resource_node"
+x = 180.0
+y = 180.0
+width = 40.0
+height = 40.0
+properties = { resource = "official:credits", amount = "4000" }
+
 [camera]
 start_x = 320.0
 start_y = 320.0

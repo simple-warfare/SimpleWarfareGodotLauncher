@@ -17,6 +17,10 @@ var _entity_snapshots: Dictionary = {}
 var _move_target_markers: Dictionary = {}
 var _selected_entity_id := 0
 var _map_bounds: Line2D
+var _tile_layer_root: Node2D
+var _object_layer_root: Node2D
+var _last_tile_layers_key := ""
+var _last_object_layers_key := ""
 var _camera_initialized := false
 var _camera_min_zoom := 0.5
 var _camera_max_zoom := 2.0
@@ -119,6 +123,8 @@ func _refresh_map(map: Dictionary) -> void:
 		Vector2(0.0, map_size.y),
 		Vector2.ZERO,
 	])
+	_refresh_tile_layers(map, tile_size, map_size)
+	_refresh_object_layers(map)
 	_apply_camera_config(map, map_size)
 
 
@@ -152,6 +158,165 @@ func _map_camera(map: Dictionary) -> Dictionary:
 		return {}
 	var camera: Dictionary = camera_value
 	return camera
+
+
+func _refresh_tile_layers(map: Dictionary, tile_size: float, map_size: Vector2) -> void:
+	var layers := _map_array(map, "layers")
+	var tilesets := _map_array(map, "tilesets")
+	var layers_key := "%s|%s|%s" % [str(layers), str(tilesets), map_size]
+	if layers_key == _last_tile_layers_key:
+		return
+
+	_last_tile_layers_key = layers_key
+	var root := _get_or_create_tile_layer_root()
+	_clear_children(root)
+
+	var tile_colors := _map_tile_colors(tilesets)
+	for layer_value in layers:
+		if typeof(layer_value) != TYPE_DICTIONARY:
+			continue
+		var layer: Dictionary = layer_value
+		_render_tile_layer(root, layer, tile_colors, tile_size, map_size)
+
+
+func _render_tile_layer(root: Node2D, layer: Dictionary, tile_colors: Dictionary, tile_size: float, map_size: Vector2) -> void:
+	var layer_node := Node2D.new()
+	layer_node.name = "TileLayer_%s" % str(layer.get("id", "layer"))
+	layer_node.z_index = int(layer.get("z_index", 0)) - 100
+	root.add_child(layer_node)
+
+	var width := int(layer.get("width", 0))
+	var height := int(layer.get("height", 0))
+	if width <= 0 || height <= 0:
+		return
+
+	var data := _dictionary_array(layer, "data")
+	if !data.is_empty() && data.size() == width * height:
+		for y in range(height):
+			for x in range(width):
+				var tile_id := int(data[y * width + x])
+				_add_tile_rect(layer_node, Vector2(x * tile_size, y * tile_size), tile_size, _tile_color(tile_colors, tile_id))
+	else:
+		var fill := ColorRect.new()
+		fill.position = Vector2.ZERO
+		fill.size = map_size
+		fill.color = _tile_color(tile_colors, int(layer.get("default_tile", 0)))
+		layer_node.add_child(fill)
+
+	for tile_value in _map_array(layer, "tiles"):
+		if typeof(tile_value) != TYPE_DICTIONARY:
+			continue
+		var tile: Dictionary = tile_value
+		var tile_position := Vector2(
+			float(int(tile.get("x", 0))) * tile_size,
+			float(int(tile.get("y", 0))) * tile_size
+		)
+		_add_tile_rect(layer_node, tile_position, tile_size, _tile_color(tile_colors, int(tile.get("tile", 0))))
+
+
+func _refresh_object_layers(map: Dictionary) -> void:
+	var layers := _map_array(map, "object_layers")
+	var layers_key := str(layers)
+	if layers_key == _last_object_layers_key:
+		return
+
+	_last_object_layers_key = layers_key
+	var root := _get_or_create_object_layer_root()
+	_clear_children(root)
+
+	for layer_value in layers:
+		if typeof(layer_value) != TYPE_DICTIONARY:
+			continue
+		var layer: Dictionary = layer_value
+		var layer_node := Node2D.new()
+		layer_node.name = "ObjectLayer_%s" % str(layer.get("id", "objects"))
+		layer_node.z_index = int(layer.get("z_index", 0)) - 50
+		root.add_child(layer_node)
+
+		for object_value in _map_array(layer, "objects"):
+			if typeof(object_value) != TYPE_DICTIONARY:
+				continue
+			var object: Dictionary = object_value
+			_add_object_rect(layer_node, object)
+
+
+func _map_tile_colors(tilesets: Array) -> Dictionary:
+	var colors := {}
+	for tileset_value in tilesets:
+		if typeof(tileset_value) != TYPE_DICTIONARY:
+			continue
+		var tileset: Dictionary = tileset_value
+		for tile_value in _map_array(tileset, "tiles"):
+			if typeof(tile_value) != TYPE_DICTIONARY:
+				continue
+			var tile: Dictionary = tile_value
+			colors[int(tile.get("id", 0))] = _parse_tile_color(str(tile.get("color", "")), int(tile.get("id", 0)))
+	return colors
+
+
+func _parse_tile_color(color_text: String, tile_id: int) -> Color:
+	if !color_text.is_empty():
+		var html := color_text
+		if html.begins_with("#"):
+			html = html.substr(1)
+		return Color.html(html)
+
+	match tile_id:
+		1:
+			return Color(0.30, 0.31, 0.27, 1.0)
+		2:
+			return Color(0.14, 0.28, 0.38, 1.0)
+		_:
+			return Color(0.13, 0.27, 0.18, 1.0)
+
+
+func _tile_color(tile_colors: Dictionary, tile_id: int) -> Color:
+	if tile_colors.has(tile_id):
+		return tile_colors[tile_id]
+	return _parse_tile_color("", tile_id)
+
+
+func _add_tile_rect(parent: Node, position: Vector2, tile_size: float, color: Color) -> void:
+	var rect := ColorRect.new()
+	rect.position = position
+	rect.size = Vector2(tile_size, tile_size)
+	rect.color = color
+	parent.add_child(rect)
+
+
+func _add_object_rect(parent: Node, object: Dictionary) -> void:
+	var width: float = max(float(object.get("width", 24.0)), 8.0)
+	var height: float = max(float(object.get("height", 24.0)), 8.0)
+	var rect := ColorRect.new()
+	rect.name = "Object_%s" % str(object.get("id", "object"))
+	rect.position = Vector2(
+		float(object.get("x", 0.0)) - width * 0.5,
+		float(object.get("y", 0.0)) - height * 0.5
+	)
+	rect.size = Vector2(width, height)
+	rect.rotation_degrees = float(object.get("rotation_degrees", 0.0))
+	rect.color = _object_color(str(object.get("kind", "")))
+	parent.add_child(rect)
+
+
+func _object_color(kind: String) -> Color:
+	match kind:
+		"resource_node":
+			return Color(0.96, 0.78, 0.30, 0.55)
+		_:
+			return Color(0.72, 0.72, 0.78, 0.45)
+
+
+func _map_array(source: Dictionary, key: String) -> Array:
+	var value: Variant = source.get(key, [])
+	if typeof(value) != TYPE_ARRAY:
+		return []
+	var array: Array = value
+	return array
+
+
+func _dictionary_array(source: Dictionary, key: String) -> Array:
+	return _map_array(source, key)
 
 
 func _handle_camera_movement(delta: float) -> void:
@@ -449,11 +614,36 @@ func _get_or_create_map_bounds() -> Line2D:
 
 	_map_bounds = Line2D.new()
 	_map_bounds.name = "MapBounds"
+	_map_bounds.z_index = 20
 	_map_bounds.width = 3.0
 	_map_bounds.default_color = Color(0.46, 0.72, 0.55, 0.95)
 	_world.add_child(_map_bounds)
-	_world.move_child(_map_bounds, 0)
 	return _map_bounds
+
+
+func _get_or_create_tile_layer_root() -> Node2D:
+	if _tile_layer_root != null:
+		return _tile_layer_root
+
+	_tile_layer_root = Node2D.new()
+	_tile_layer_root.name = "TileLayers"
+	_world.add_child(_tile_layer_root)
+	return _tile_layer_root
+
+
+func _get_or_create_object_layer_root() -> Node2D:
+	if _object_layer_root != null:
+		return _object_layer_root
+
+	_object_layer_root = Node2D.new()
+	_object_layer_root.name = "ObjectLayers"
+	_world.add_child(_object_layer_root)
+	return _object_layer_root
+
+
+func _clear_children(node: Node) -> void:
+	for child in node.get_children():
+		child.queue_free()
 
 
 func _update_or_create_move_target_marker(entity_id: int, target_position: Vector2) -> void:
