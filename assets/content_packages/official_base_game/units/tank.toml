@@ -9,3 +9,7 @@ radius = 11.0
 [movement]
 kind = "land"
 max_speed = 1.1
+
+[economy]
+cost = { "official:credits" = 100 }
+resource_rates_per_second = { "official:credits" = 2 }
