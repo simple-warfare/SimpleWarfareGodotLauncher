@@ -28,6 +28,7 @@ var _object_layer_root: Node2D
 var _last_tile_layers_key := ""
 var _last_objects_key := ""
 var _tile_texture_cache: Dictionary = {}
+var _content_package_root := ""
 var _camera_initialized := false
 var _camera_min_zoom := 0.5
 var _camera_max_zoom := 2.0
@@ -48,6 +49,7 @@ func _process(delta: float) -> void:
 
 func _refresh_from_snapshot() -> void:
 	var snapshot := RustBackend.get_frontend_snapshot()
+	_content_package_root = str(snapshot.get("content_package_root", ""))
 	var units: Array = snapshot.get("units", [])
 	var objects: Array = snapshot.get("objects", [])
 	var map: Dictionary = _snapshot_map(snapshot)
@@ -354,7 +356,9 @@ func _add_tile(parent: Node, position: Vector2, tile_size: float, tile_definitio
 
 
 func _load_tile_texture(relative_source: String) -> Texture2D:
-	var package_root := RustBackend.get_assets_root().path_join("content_packages/official_base_game")
+	var package_root := _content_package_root
+	if package_root.is_empty():
+		package_root = RustBackend.get_assets_root().path_join("content_packages/official_base_game")
 	var source_path := package_root.path_join(relative_source)
 	if _tile_texture_cache.has(source_path):
 		return _tile_texture_cache[source_path]
