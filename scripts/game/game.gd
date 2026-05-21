@@ -844,15 +844,16 @@ func _command_lifecycle_summary(commands: Dictionary) -> String:
 	var rejected_reason := str(commands.get("last_rejected_reason", ""))
 	var replay_summary := _replay_summary(commands)
 	if result_status == "rejected" && rejected_reason != "":
-		return "pending:%s ack:%s result:%s rejected:%s %s %s" % [
+		return "pending:%s ack:%s result:%s rejected:%s %s %s %s" % [
 			commands.get("pending_count", 0),
 			commands.get("acknowledged_count", 0),
 			result_status,
 			rejected_reason,
 			replay_summary,
 			_reconciliation_summary(commands),
+			_prediction_history_summary(commands),
 		]
-	return "pending:%s ack:%s result:%s applied:%s/%s %s %s" % [
+	return "pending:%s ack:%s result:%s applied:%s/%s %s %s %s" % [
 		commands.get("pending_count", 0),
 		commands.get("acknowledged_count", 0),
 		result_status,
@@ -860,6 +861,7 @@ func _command_lifecycle_summary(commands: Dictionary) -> String:
 		commands.get("last_applied_sequence", 0),
 		replay_summary,
 		_reconciliation_summary(commands),
+		_prediction_history_summary(commands),
 	]
 
 
@@ -913,6 +915,38 @@ func _reconciliation_summary(commands: Dictionary) -> String:
 		correction,
 		target_error,
 		position_error,
+	]
+
+
+func _prediction_history_summary(commands: Dictionary) -> String:
+	var history_count := int(commands.get("prediction_history_count", 0))
+	if history_count == 0:
+		return "pred:none"
+
+	var command_id := int(commands.get("last_prediction_command_id", 0))
+	var sequence := int(commands.get("last_prediction_sequence", 0))
+	var entity_id := int(commands.get("last_prediction_entity_id", 0))
+	var predicted := Vector2(
+		float(commands.get("last_prediction_x", 0.0)),
+		float(commands.get("last_prediction_y", 0.0))
+	)
+	var authoritative := Vector2(
+		float(commands.get("last_prediction_authoritative_x", 0.0)),
+		float(commands.get("last_prediction_authoritative_y", 0.0))
+	)
+	var position_error := float(commands.get("last_prediction_position_error", 0.0))
+	var correction := str(commands.get("last_prediction_correction", ""))
+	return "pred:%s last:%s/%s unit:%s p:(%.1f,%.1f) a:(%.1f,%.1f) err:%.2f corr:%s" % [
+		history_count,
+		command_id,
+		sequence,
+		entity_id,
+		predicted.x,
+		predicted.y,
+		authoritative.x,
+		authoritative.y,
+		position_error,
+		correction,
 	]
 
 
