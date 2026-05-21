@@ -14,12 +14,14 @@
 - 不提交：`.godot/`、`.doc/`、`docs/`、`build/`、本地日志、导出的安装包、GDExtension 动态库。
 - 正式内容包源文件放在 `assets/content_packages/`。
 - 运行时可写目录使用 Godot 的 `user://`，代码和文档中不要硬编码本机绝对路径。
+- 修改 Rust GDExtension 动态库产物时不要直接提交二进制；应由 Rust 仓库的 `builder` 重新生成本地运行产物。
 
 ## 代码规则
 
 - Godot 前端负责 UI、输入采集、场景跳转和渲染表现。
 - Rust 核心负责游戏规则、内容加载、模拟、网络和快照。
 - Godot 与 Rust 通过 `RustBackend` 和 GDExtension 边界交互，不在 UI 脚本里直接分散调用底层接口。
+- 前端场景只消费 `RustBackend.get_frontend_snapshot()` 和命令反馈，不自行推导权威规则。
 - 注释优先使用中文，说明“为什么这样做”，不要重复描述代码本身。
 
 ## 提交前检查

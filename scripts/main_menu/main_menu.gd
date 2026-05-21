@@ -15,6 +15,7 @@ const DEFAULT_SERVER_ADDR := "127.0.0.1:5888"
 
 func _ready() -> void:
 	_join_address_input.text = DEFAULT_SERVER_ADDR
+	_join_address_input.text_submitted.connect(_join_remote_game_from_text)
 	_singleplayer_button.pressed.connect(_start_singleplayer)
 	_host_button.pressed.connect(_start_host)
 	_join_button.pressed.connect(_join_remote_game)
@@ -70,9 +71,23 @@ func _refresh_status() -> void:
 	var diagnostics_text := RustBackend.get_recent_diagnostics_text(4)
 	if !diagnostics_text.is_empty():
 		_status_value.text += "\nDiagnostics:\n%s" % diagnostics_text
+	if !AppState.last_error.is_empty():
+		_status_value.text += "\nNotice: %s" % AppState.last_error
+
+	_refresh_action_state()
+
+
+func _refresh_action_state() -> void:
+	var can_start_runtime := RustBackend.is_available() && AppState.assets_ready
+	var is_running := RustBackend.get_status() == "running"
+	_singleplayer_button.disabled = !can_start_runtime || is_running
+	_host_button.disabled = !can_start_runtime || is_running
+	_join_button.disabled = !can_start_runtime || is_running
+	_join_address_input.editable = can_start_runtime && !is_running
 
 
 func _start_singleplayer() -> void:
+	AppState.clear_error()
 	var result := RustBackend.start_singleplayer()
 	if result == "ok":
 		AppState.launch_mode = AppState.LaunchMode.SINGLEPLAYER
@@ -83,6 +98,7 @@ func _start_singleplayer() -> void:
 
 
 func _start_host() -> void:
+	AppState.clear_error()
 	var result := RustBackend.start_host()
 	if result == "ok":
 		AppState.launch_mode = AppState.LaunchMode.HOST
@@ -92,7 +108,12 @@ func _start_host() -> void:
 	_refresh_status()
 
 
+func _join_remote_game_from_text(_submitted_text: String) -> void:
+	_join_remote_game()
+
+
 func _join_remote_game() -> void:
+	AppState.clear_error()
 	var server_addr := _join_address_input.text.strip_edges()
 	if server_addr.is_empty():
 		server_addr = DEFAULT_SERVER_ADDR
@@ -123,4 +144,4 @@ func _quit() -> void:
 
 func _show_not_implemented(message: String) -> void:
 	AppState.set_error(message)
-	_status_value.text = message
+	_refresh_status()
