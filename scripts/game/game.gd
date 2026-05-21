@@ -98,6 +98,7 @@ func _refresh_from_snapshot() -> void:
 	var debug_lines := [
 		"move=%s" % _movement_command_summary(),
 		"production=%s" % _production_command_summary(),
+		"sync=%s" % _lightyear_prediction_summary(commands),
 		"commands=%s" % _command_lifecycle_summary(commands),
 	]
 	var latest_diagnostic := RustBackend.get_latest_diagnostic_summary()
@@ -881,6 +882,25 @@ func _replay_summary(commands: Dictionary) -> String:
 		commands.get("replay_first_sequence", 0),
 		commands.get("replay_last_sequence", 0),
 	]
+
+
+func _lightyear_prediction_summary(commands: Dictionary) -> String:
+	var predicted_count := int(commands.get("lightyear_predicted_unit_count", 0))
+	var replicated_count := int(commands.get("replicated_unit_count", 0))
+	if replicated_count == 0:
+		return "ly:none"
+
+	var predicted_ids := PackedStringArray()
+	for unit_value in _dictionary_array(commands, "replicated_units"):
+		if typeof(unit_value) != TYPE_DICTIONARY:
+			continue
+		var unit: Dictionary = unit_value
+		if bool(unit.get("is_lightyear_predicted", false)):
+			predicted_ids.append(str(unit.get("unit_id", 0)))
+
+	if predicted_ids.is_empty():
+		return "ly:%s/%s ids:none" % [predicted_count, replicated_count]
+	return "ly:%s/%s ids:%s" % [predicted_count, replicated_count, ",".join(predicted_ids)]
 
 
 func _reconciliation_summary(commands: Dictionary) -> String:
