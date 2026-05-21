@@ -16,6 +16,7 @@ const VISUAL_CORRECTION_MIN_OFFSET := 0.25
 @onready var _camera: Camera2D = %Camera
 @onready var _hud: Control = $HudLayer/Hud
 @onready var _status_value: Label = %StatusValue
+@onready var _debug_value: Label = %DebugValue
 @onready var _stop_command_button: Button = %StopCommandButton
 @onready var _produce_command_button: Button = %ProduceCommandButton
 @onready var _diagnostics_button: Button = %DiagnosticsButton
@@ -82,7 +83,7 @@ func _refresh_from_snapshot() -> void:
 
 	_remove_missing_units(alive_unit_ids)
 	_refresh_command_controls()
-	_status_value.text = "map=%s mode=%s room=%s resources=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s move=%s production=%s commands=%s" % [
+	_status_value.text = "map=%s mode=%s room=%s resources=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
 		_room_summary(room),
@@ -93,13 +94,16 @@ func _refresh_from_snapshot() -> void:
 		snapshot.get("client_tick", 0),
 		units.size(),
 		_selected_unit_summary(),
-		_movement_command_summary(),
-		_production_command_summary(),
-		_command_lifecycle_summary(commands),
+	]
+	var debug_lines := [
+		"move=%s" % _movement_command_summary(),
+		"production=%s" % _production_command_summary(),
+		"commands=%s" % _command_lifecycle_summary(commands),
 	]
 	var latest_diagnostic := RustBackend.get_latest_diagnostic_summary()
 	if !latest_diagnostic.is_empty():
-		_status_value.text += "\ndiag=%s" % latest_diagnostic
+		debug_lines.append("diag=%s" % latest_diagnostic)
+	_debug_value.text = "\n".join(debug_lines)
 
 
 func _snapshot_map(snapshot: Dictionary) -> Dictionary:

@@ -55,3 +55,16 @@ text = "Produce"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Diagnostics"
+
+[node name="DebugPanel" type="PanelContainer" parent="HudLayer"]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 144.0
+offset_right = 760.0
+offset_bottom = 260.0
+
+[node name="DebugValue" type="Label" parent="HudLayer/DebugPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Waiting for debug data"
+autowrap_mode = 3
