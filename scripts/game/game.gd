@@ -842,21 +842,38 @@ func _production_command_summary() -> String:
 func _command_lifecycle_summary(commands: Dictionary) -> String:
 	var result_status := str(commands.get("last_result_status", ""))
 	var rejected_reason := str(commands.get("last_rejected_reason", ""))
+	var replay_summary := _replay_summary(commands)
 	if result_status == "rejected" && rejected_reason != "":
-		return "pending:%s ack:%s result:%s rejected:%s %s" % [
+		return "pending:%s ack:%s result:%s rejected:%s %s %s" % [
 			commands.get("pending_count", 0),
 			commands.get("acknowledged_count", 0),
 			result_status,
 			rejected_reason,
+			replay_summary,
 			_reconciliation_summary(commands),
 		]
-	return "pending:%s ack:%s result:%s applied:%s/%s %s" % [
+	return "pending:%s ack:%s result:%s applied:%s/%s %s %s" % [
 		commands.get("pending_count", 0),
 		commands.get("acknowledged_count", 0),
 		result_status,
 		commands.get("last_applied_command_id", 0),
 		commands.get("last_applied_sequence", 0),
+		replay_summary,
 		_reconciliation_summary(commands),
+	]
+
+
+func _replay_summary(commands: Dictionary) -> String:
+	var replay_count := int(commands.get("replay_command_count", 0))
+	if replay_count == 0:
+		return "replay:none"
+
+	return "replay:%s base:%s units:%s seq:%s-%s" % [
+		replay_count,
+		commands.get("replay_base_server_tick", 0),
+		commands.get("replay_base_unit_count", 0),
+		commands.get("replay_first_sequence", 0),
+		commands.get("replay_last_sequence", 0),
 	]
 
 
