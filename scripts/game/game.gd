@@ -927,6 +927,23 @@ func _prediction_history_summary(commands: Dictionary) -> String:
 	if history_count == 0:
 		return "pred:none"
 
+	var history := _dictionary_array(commands, "prediction_history")
+	if !history.is_empty():
+		var entries := PackedStringArray()
+		for entry_value in history:
+			if typeof(entry_value) != TYPE_DICTIONARY:
+				continue
+			var entry: Dictionary = entry_value
+			entries.append("#%s/%s u:%s err:%.2f corr:%s" % [
+				entry.get("command_id", 0),
+				entry.get("sequence", 0),
+				entry.get("entity_id", 0),
+				float(entry.get("position_error", 0.0)),
+				str(entry.get("correction", "")),
+			])
+		if !entries.is_empty():
+			return "pred:%s recent:%s" % [history_count, " | ".join(entries)]
+
 	var command_id := int(commands.get("last_prediction_command_id", 0))
 	var sequence := int(commands.get("last_prediction_sequence", 0))
 	var entity_id := int(commands.get("last_prediction_entity_id", 0))
