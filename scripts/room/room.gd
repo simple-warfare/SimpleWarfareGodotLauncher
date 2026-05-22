@@ -14,6 +14,9 @@ const SNAPSHOT_WARNING_SECONDS := 8.0
 var _wait_seconds := 0.0
 var _last_slots_key := ""
 var _start_requested := false
+var _start_command_id := 0
+var _start_wait_seconds := 0.0
+var _start_status := ""
 var _routing_to_game := false
 
 
@@ -28,6 +31,8 @@ func _process(delta: float) -> void:
 	if RustBackend.get_status() == "running":
 		RustBackend.update_runtime(delta)
 		_wait_seconds += delta
+		if _start_requested:
+			_start_wait_seconds += delta
 
 	_refresh_from_snapshot()
 
@@ -35,11 +40,14 @@ func _process(delta: float) -> void:
 func _refresh_from_snapshot() -> void:
 	var snapshot := RustBackend.get_frontend_snapshot()
 	var room := _snapshot_room(snapshot)
+	var commands := _snapshot_commands(snapshot)
 	var slots := _room_slots(room)
 	var phase := str(room.get("phase", "lobby"))
 	var local_is_host := _local_is_host(slots)
 	var server_tick := int(snapshot.get("server_tick", 0))
 	var client_tick := int(snapshot.get("client_tick", 0))
+
+	_refresh_start_request_state(commands, phase)
 
 	_title.text = _mode_title()
 	_status_value.text = "phase=%s status=%s server_tick=%s client_tick=%s result=%s" % [
@@ -52,6 +60,8 @@ func _refresh_from_snapshot() -> void:
 	var latest_diagnostic := RustBackend.get_latest_diagnostic_summary()
 	if !latest_diagnostic.is_empty():
 		_status_value.text += "\ndiag=%s" % latest_diagnostic
+	if !_start_status.is_empty():
+		_status_value.text += "\nstart=%s" % _start_status
 
 	if AppState.launch_mode == AppState.LaunchMode.CLIENT && server_tick <= 0:
 		_status_value.text += "\nwaiting for server %s (%.1fs)" % [AppState.server_addr, _wait_seconds]
@@ -88,6 +98,14 @@ func _snapshot_room(snapshot: Dictionary) -> Dictionary:
 		return {}
 	var room: Dictionary = room_value
 	return room
+
+
+func _snapshot_commands(snapshot: Dictionary) -> Dictionary:
+	var commands_value: Variant = snapshot.get("commands", {})
+	if typeof(commands_value) != TYPE_DICTIONARY:
+		return {}
+	var commands: Dictionary = commands_value
+	return commands
 
 
 func _room_slots(room: Dictionary) -> Array:
@@ -256,14 +274,58 @@ func _start_game() -> void:
 		return
 
 	_start_requested = true
+	_start_wait_seconds = 0.0
+	_start_status = "queued"
 	_start_button.disabled = true
 	var feedback := RustBackend.issue_start_game_command()
 	if !bool(feedback.get("accepted", false)):
 		_start_requested = false
+		_start_command_id = 0
+		_start_status = "rejected: %s %s" % [
+			feedback.get("rejected_reason", "unknown"),
+			feedback.get("detail", ""),
+		]
 		push_warning("Rust start_game command rejected: %s %s" % [
 			feedback.get("rejected_reason", "unknown"),
 			feedback.get("detail", ""),
 		])
+		return
+
+	_start_command_id = int(feedback.get("command_id", 0))
+	_start_status = "queued id=%s" % _start_command_id
+
+
+func _refresh_start_request_state(commands: Dictionary, phase: String) -> void:
+	if phase == "in_game":
+		_start_requested = false
+		_start_command_id = 0
+		_start_wait_seconds = 0.0
+		_start_status = ""
+		return
+
+	if !_start_requested:
+		return
+
+	var pending_count := int(commands.get("pending_count", 0))
+	var last_acknowledged_command_id := int(commands.get("last_acknowledged_command_id", 0))
+	var last_result_status := str(commands.get("last_result_status", ""))
+	if _start_command_id > 0 && last_acknowledged_command_id == _start_command_id && last_result_status == "rejected":
+		var rejected_reason := str(commands.get("last_rejected_reason", "unknown"))
+		var rejected_detail := str(commands.get("last_rejected_detail", ""))
+		_start_requested = false
+		_start_status = "rejected: %s %s" % [rejected_reason, rejected_detail]
+		push_warning("Rust start_game command rejected asynchronously: %s %s" % [
+			rejected_reason,
+			rejected_detail,
+		])
+		return
+
+	if _start_wait_seconds >= SNAPSHOT_WARNING_SECONDS:
+		_start_status = "pending id=%s pending_count=%s %.1fs" % [
+			_start_command_id,
+			pending_count,
+			_start_wait_seconds,
+		]
 
 
 func _route_to_game_when_started() -> void:
