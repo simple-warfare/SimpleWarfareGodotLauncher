@@ -11,7 +11,8 @@ const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
 const VISUAL_CORRECTION_SMOOTH_SPEED := 240.0
 const VISUAL_CORRECTION_MIN_OFFSET := 0.25
-const MISSING_UNIT_GRACE_FRAMES := 20
+const VISUAL_CORRECTION_MAX_SMOOTH_OFFSET := 192.0
+const MISSING_UNIT_GRACE_FRAMES := 90
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -600,7 +601,7 @@ func _capture_reconciliation_visual_correction(commands: Dictionary, units: Arra
 
 	_last_visual_correction_sequence = sequence
 	var correction := str(commands.get("last_reconciliation_correction", ""))
-	if correction != "smooth_correction":
+	if correction != "smooth_correction" && correction != "snap_correction":
 		_visual_correction_offsets.clear()
 		return
 
@@ -615,8 +616,11 @@ func _capture_reconciliation_visual_correction(commands: Dictionary, units: Arra
 
 		var unit_node: Node2D = _unit_nodes[unit_id]
 		var offset := unit_node.position - _unit_snapshot_position(unit)
-		if offset.length() > VISUAL_CORRECTION_MIN_OFFSET:
+		var offset_length := offset.length()
+		if offset_length > VISUAL_CORRECTION_MIN_OFFSET && offset_length <= VISUAL_CORRECTION_MAX_SMOOTH_OFFSET:
 			_visual_correction_offsets[unit_id] = offset
+		elif offset_length > VISUAL_CORRECTION_MAX_SMOOTH_OFFSET:
+			_visual_correction_offsets.erase(unit_id)
 
 
 func _unit_visual_position(unit_id: int, snapshot_position: Vector2) -> Vector2:
