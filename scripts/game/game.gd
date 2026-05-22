@@ -9,10 +9,11 @@ const OBJECT_LAYER_Z_BASE := 40
 const MOVE_TARGET_Z := 80
 const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
-const VISUAL_CORRECTION_SMOOTH_SPEED := 240.0
+const VISUAL_CORRECTION_SMOOTH_SPEED := 720.0
 const VISUAL_CORRECTION_MIN_OFFSET := 0.25
-const VISUAL_CORRECTION_MAX_SMOOTH_OFFSET := 192.0
-const MISSING_UNIT_GRACE_FRAMES := 90
+const VISUAL_CORRECTION_JUMP_THRESHOLD := 2.0
+const VISUAL_CORRECTION_MAX_SMOOTH_OFFSET := 4096.0
+const MISSING_UNIT_GRACE_FRAMES := 600
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -485,7 +486,9 @@ func _is_over_hud(screen_position: Vector2) -> bool:
 
 func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
 	var unit_node := _get_or_create_unit_node(unit_id)
-	unit_node.position = _unit_visual_position(unit_id, _unit_snapshot_position(unit))
+	var snapshot_position := _unit_snapshot_position(unit)
+	_capture_unit_snapshot_jump(unit_id, unit_node, snapshot_position)
+	unit_node.position = _unit_visual_position(unit_id, snapshot_position)
 	var visuals: Node2D = unit_node.get_node("Visuals")
 	visuals.rotation_degrees = float(unit.get("facing_degrees", 0.0))
 
@@ -621,6 +624,17 @@ func _capture_reconciliation_visual_correction(commands: Dictionary, units: Arra
 			_visual_correction_offsets[unit_id] = offset
 		elif offset_length > VISUAL_CORRECTION_MAX_SMOOTH_OFFSET:
 			_visual_correction_offsets.erase(unit_id)
+
+
+func _capture_unit_snapshot_jump(unit_id: int, unit_node: Node2D, snapshot_position: Vector2) -> void:
+	var offset := unit_node.position - snapshot_position
+	var offset_length := offset.length()
+	if offset_length <= VISUAL_CORRECTION_JUMP_THRESHOLD:
+		return
+	if offset_length <= VISUAL_CORRECTION_MAX_SMOOTH_OFFSET:
+		_visual_correction_offsets[unit_id] = offset
+	else:
+		_visual_correction_offsets.erase(unit_id)
 
 
 func _unit_visual_position(unit_id: int, snapshot_position: Vector2) -> Vector2:
