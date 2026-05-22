@@ -40,14 +40,19 @@ func _process(delta: float) -> void:
 func _refresh_from_snapshot() -> void:
 	var snapshot := RustBackend.get_frontend_snapshot()
 	var room := _snapshot_room(snapshot)
+	var network := _snapshot_network(snapshot)
 	var commands := _snapshot_commands(snapshot)
 	var slots := _room_slots(room)
-	var phase := str(room.get("phase", "lobby"))
+	var phase := _effective_room_phase(room, network)
 	var local_is_host := _local_is_host(slots)
 	var server_tick := int(snapshot.get("server_tick", 0))
 	var client_tick := int(snapshot.get("client_tick", 0))
 
 	_refresh_start_request_state(commands, phase)
+
+	if phase == "in_game":
+		_route_to_game_when_started()
+		return
 
 	_title.text = _mode_title()
 	_status_value.text = "phase=%s status=%s server_tick=%s client_tick=%s result=%s" % [
@@ -62,14 +67,14 @@ func _refresh_from_snapshot() -> void:
 		_status_value.text += "\ndiag=%s" % latest_diagnostic
 	if !_start_status.is_empty():
 		_status_value.text += "\nstart=%s" % _start_status
+	var network_summary := _network_summary(network)
+	if !network_summary.is_empty():
+		_status_value.text += "\nnetwork=%s" % network_summary
 
 	if AppState.launch_mode == AppState.LaunchMode.CLIENT && server_tick <= 0:
 		_status_value.text += "\nwaiting for server %s (%.1fs)" % [AppState.server_addr, _wait_seconds]
 		if _wait_seconds >= SNAPSHOT_WARNING_SECONDS:
 			_status_value.text += "\nno server snapshot yet"
-
-	if phase == "in_game":
-		_route_to_game_when_started()
 
 	var local_player_key := str(room.get("local_player_key", ""))
 	if local_player_key.is_empty():
@@ -98,6 +103,30 @@ func _snapshot_room(snapshot: Dictionary) -> Dictionary:
 		return {}
 	var room: Dictionary = room_value
 	return room
+
+
+func _snapshot_network(snapshot: Dictionary) -> Dictionary:
+	var debug_value: Variant = snapshot.get("debug", {})
+	if typeof(debug_value) != TYPE_DICTIONARY:
+		return {}
+
+	var debug: Dictionary = debug_value
+	var network_value: Variant = debug.get("network", {})
+	if typeof(network_value) != TYPE_DICTIONARY:
+		return {}
+
+	var network: Dictionary = network_value
+	return network
+
+
+func _effective_room_phase(room: Dictionary, network: Dictionary) -> String:
+	var room_phase := str(room.get("phase", ""))
+	var network_phase := str(network.get("room_phase", ""))
+	if room_phase == "in_game" || network_phase == "in_game":
+		return "in_game"
+	if room_phase.is_empty():
+		return "lobby"
+	return room_phase
 
 
 func _snapshot_commands(snapshot: Dictionary) -> Dictionary:
@@ -235,6 +264,18 @@ func _content_ready(room: Dictionary, slots: Array) -> bool:
 	return true
 
 
+func _network_summary(network: Dictionary) -> String:
+	if network.is_empty():
+		return ""
+	return "mode=%s replicated=%s predicted=%s results=%s room=%s" % [
+		network.get("smoothing_mode", "none"),
+		network.get("replicated_unit_count", 0),
+		network.get("lightyear_predicted_unit_count", 0),
+		network.get("command_result_count", 0),
+		network.get("room_phase", "lobby"),
+	]
+
+
 func _slot_summary(slot: Dictionary) -> String:
 	var team_id := int(slot.get("team_id", -1))
 	var team := "none"
@@ -332,7 +373,12 @@ func _route_to_game_when_started() -> void:
 	if _routing_to_game:
 		return
 	_routing_to_game = true
-	SceneRouter.call_deferred("go_to_game")
+	_start_status = "routing to game"
+	AppState.clear_error()
+	SceneRouter.go_to_game()
+	if !AppState.last_error.is_empty():
+		_routing_to_game = false
+		_start_status = "route failed: %s" % AppState.last_error
 
 
 func _leave_room() -> void:
