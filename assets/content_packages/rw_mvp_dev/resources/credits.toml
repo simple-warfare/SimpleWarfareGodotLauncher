@@ -1,0 +1,11 @@
+[[resources]]
+id = "rw_mvp:credits"
+display_name = "Credits"
+storage = "integer"
+default_amount = 0
+max_amount = 999999
+ui_icon = "currency"
+
+[resources.validation]
+allow_negative_delta = true
+allow_negative_balance = false

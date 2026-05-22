@@ -1,0 +1,32 @@
+id = "rw_mvp_dev"
+title = "RW-Informed MVP Development Package"
+version = "0.1.0"
+schema_version = 2
+package_kind = "development"
+entry_map = "rw_mvp:duel_fields"
+default_faction = "rw_mvp:core"
+
+[provenance]
+source = "local_rusted_warfare_reference"
+reference_root = "docs/reference/rusted_warfare"
+policy = "clean_schema_derivation"
+raw_legacy_embedded = false
+
+[entrypoints]
+schema = "schema/rw_mvp_schema.toml"
+assets = "indexes/assets.toml"
+resources = "resources/credits.toml"
+factions = "factions/core.toml"
+weapons = "weapons/common.toml"
+units = "units/ground.toml"
+maps = "maps/duel_fields.toml"
+
+[validation]
+required_passes = [
+  "unique_ids",
+  "reference_integrity",
+  "unit_combat_targets",
+  "production_graph",
+  "map_spawn_rules",
+  "asset_existence",
+]

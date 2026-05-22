@@ -1,0 +1,121 @@
+[[weapons]]
+id = "rw_mvp:tank_cannon"
+
+[weapons.targeting]
+allowed_layers = ["ground"]
+excluded_layers = ["air", "underwater"]
+range = 130.0
+requires_line_of_sight = true
+
+[weapons.cooldown]
+source_ticks = 75
+seconds = 1.25
+
+[[weapons.turrets]]
+id = "main"
+mount = { x = 0.0, y = 0.0 }
+turn_rate_degrees_per_second = 240.0
+recoil = { offset = -2.0 }
+sprite = "rw_mvp:sprite_tank_turret"
+
+[weapons.projectile]
+id = "rw_mvp:tank_shell"
+kind = "ballistic"
+speed = 300.0
+lifetime_seconds = 1.0
+direct_damage = 25
+area_damage = 0
+area_radius = 0.0
+visual = { frame = 1, draw_size = 1.0 }
+
+[[weapons]]
+id = "rw_mvp:artillery_shell"
+
+[weapons.targeting]
+allowed_layers = ["ground"]
+excluded_layers = ["air", "underwater"]
+range = 290.0
+requires_line_of_sight = false
+target_ground = true
+target_spread = 30.0
+
+[weapons.cooldown]
+source_ticks = 240
+seconds = 4.0
+
+[[weapons.turrets]]
+id = "fixed"
+mount = { x = 0.0, y = 0.0 }
+turn_rate_degrees_per_second = 120.0
+recoil = { offset = -2.0, out_seconds = 0.15, return_seconds = 0.30 }
+
+[weapons.projectile]
+id = "rw_mvp:artillery_projectile"
+kind = "lobbed"
+speed = 210.0
+lifetime_seconds = 2.5
+direct_damage = 1
+area_damage = 80
+area_radius = 45.0
+gravity = 0.18
+visual = { frame = 2, color = "#bebe50", draw_size = 0.9 }
+
+[[weapons]]
+id = "rw_mvp:helicopter_gun"
+
+[weapons.targeting]
+allowed_layers = ["ground", "air"]
+excluded_layers = ["underwater"]
+range = 130.0
+requires_line_of_sight = true
+aim_spread = 0.4
+
+[weapons.cooldown]
+source_ticks = 60
+seconds = 1.0
+
+[[weapons.turrets]]
+id = "nose"
+mount = { x = 0.0, y = 16.0 }
+turn_rate_degrees_per_second = 900.0
+hidden = true
+
+[weapons.projectile]
+id = "rw_mvp:helicopter_round"
+kind = "direct"
+speed = 600.0
+lifetime_seconds = 1.17
+direct_damage = 17
+area_damage = 0
+area_radius = 0.0
+visual = { frame = 5, draw_size = 0.7 }
+
+[[weapons]]
+id = "rw_mvp:turret_cannon"
+
+[weapons.targeting]
+allowed_layers = ["ground"]
+excluded_layers = ["air", "underwater"]
+range = 165.0
+requires_line_of_sight = true
+
+[weapons.cooldown]
+source_ticks = 30
+seconds = 0.5
+
+[[weapons.turrets]]
+id = "main"
+mount = { x = 0.0, y = 6.0 }
+turn_rate_degrees_per_second = 360.0
+recoil = { offset = -0.5, out_seconds = 0.10, return_seconds = 0.20 }
+sprite = "rw_mvp:sprite_turret_top"
+
+[weapons.projectile]
+id = "rw_mvp:turret_shell"
+kind = "direct"
+speed = 360.0
+lifetime_seconds = 4.0
+direct_damage = 41
+area_damage = 0
+area_radius = 0.0
+visual = { frame = 1, draw_size = 1.0 }

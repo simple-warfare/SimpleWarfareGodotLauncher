@@ -1,0 +1,39 @@
+[[factions]]
+id = "rw_mvp:core"
+display_name = "Core"
+playable = true
+starting_units = [
+  "rw_mvp:combat_engineer",
+  "rw_mvp:mech_factory",
+  "rw_mvp:tank",
+]
+tech_roots = [
+  "rw_mvp:basic_land",
+  "rw_mvp:basic_air",
+  "rw_mvp:base_economy",
+]
+
+[[tech_nodes]]
+id = "rw_mvp:base_economy"
+display_name = "Base Economy"
+unlocked_units = [
+  "rw_mvp:extractor",
+]
+
+[[tech_nodes]]
+id = "rw_mvp:basic_land"
+display_name = "Basic Land"
+unlocked_units = [
+  "rw_mvp:combat_engineer",
+  "rw_mvp:mech_factory",
+  "rw_mvp:gun_turret",
+  "rw_mvp:tank",
+  "rw_mvp:artillery",
+]
+
+[[tech_nodes]]
+id = "rw_mvp:basic_air"
+display_name = "Basic Air"
+unlocked_units = [
+  "rw_mvp:helicopter",
+]

@@ -1,0 +1,13 @@
+files = [
+  "units/ground.toml",
+]
+
+playable_units = [
+  "rw_mvp:combat_engineer",
+  "rw_mvp:mech_factory",
+  "rw_mvp:extractor",
+  "rw_mvp:gun_turret",
+  "rw_mvp:tank",
+  "rw_mvp:artillery",
+  "rw_mvp:helicopter",
+]

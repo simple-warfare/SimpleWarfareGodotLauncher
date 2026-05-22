@@ -1,0 +1,391 @@
+[[units]]
+id = "rw_mvp:combat_engineer"
+
+[units.display]
+name = "Combat Engineer"
+description = "Mobile builder and repair unit."
+
+[units.classification]
+domain = "land"
+roles = ["builder", "repair", "light_combat"]
+tech_level = 2
+is_building = false
+is_bio = false
+
+[units.body]
+max_hp = 1000
+mass = 4000.0
+radius = 17.0
+display_radius = 18.0
+self_regen_per_second = 6.0
+transport_slots = 2
+
+[units.movement]
+kind = "land"
+max_speed = 0.85
+acceleration = 0.05
+deceleration = 0.10
+turn_rate_degrees_per_second = 180.0
+can_reverse = true
+ignores_body = false
+sliding = false
+
+[units.economy]
+cost = { "rw_mvp:credits" = 3500 }
+build_time_seconds = 33.3
+resource_rates_per_second = { "rw_mvp:credits" = 1.5 }
+
+[units.vision]
+sight_range = 220.0
+fog_reveal = true
+
+[units.construction]
+build_range = 95.0
+build_speed_multiplier = 2.0
+repair_buildings = true
+repair_units = true
+reclaim_resources = true
+build_options = [
+  { unit = "rw_mvp:extractor", category = "economy", position = 1.0 },
+  { unit = "rw_mvp:mech_factory", category = "production", position = 2.0 },
+  { unit = "rw_mvp:gun_turret", category = "defense", position = 3.0 },
+]
+
+[units.combat]
+weapons = []
+
+[units.render]
+body = "rw_mvp:sprite_combat_engineer"
+shadow = "auto"
+selection_radius = 18.0
+
+[units.source]
+ini = "units/combat_engineer/combat_engineer.ini"
+key_values = { price = "3500", max_hp = "1000", mass = "4000", radius = "17", is_builder = "true", nano_range = "95", nano_build_speed = "2" }
+
+[[units]]
+id = "rw_mvp:mech_factory"
+
+[units.display]
+name = "Mech Factory"
+description = "Core production building for MVP land units."
+
+[units.classification]
+domain = "structure"
+roles = ["factory", "production"]
+tech_level = 1
+is_building = true
+is_bio = false
+
+[units.body]
+max_hp = 1800
+mass = 9000.0
+radius = 35.0
+display_radius = 30.0
+footprint = { left = -1, top = -1, right = 1, bottom = 1 }
+placement_footprint = { left = -1, top = -1, right = 1, bottom = 3 }
+
+[units.movement]
+kind = "none"
+max_speed = 0.0
+acceleration = 0.0
+deceleration = 0.0
+turn_rate_degrees_per_second = 0.0
+
+[units.economy]
+cost = { "rw_mvp:credits" = 1000 }
+build_time_seconds = 16.7
+
+[units.vision]
+sight_range = 180.0
+fog_reveal = true
+
+[units.production]
+rally_point = true
+exit = { x = 0.0, y = -1.0, move_away = 120.0 }
+queue_limit = 10
+build_menu = [
+  { unit = "rw_mvp:combat_engineer", build_time_seconds = 16.0, spawn_offset = { x = 0.0, y = -120.0 } },
+  { unit = "rw_mvp:tank", build_time_seconds = 12.0, spawn_offset = { x = 36.0, y = -96.0 } },
+  { unit = "rw_mvp:artillery", build_time_seconds = 18.0, spawn_offset = { x = -36.0, y = -96.0 } },
+  { unit = "rw_mvp:helicopter", build_time_seconds = 14.0, spawn_offset = { x = 0.0, y = -150.0 } },
+]
+
+[units.combat]
+weapons = []
+
+[units.render]
+body = "rw_mvp:sprite_factory_top"
+base = "rw_mvp:sprite_factory_bottom"
+shadow = "none"
+selection_radius = 35.0
+
+[units.source]
+ini = "units/mech_factory/mechFactory.ini"
+key_values = { price = "1000", max_hp = "1800", mass = "9000", radius = "35", is_building = "true", exit_move_away = "120" }
+
+[[units]]
+id = "rw_mvp:extractor"
+
+[units.display]
+name = "Extractor"
+description = "Resource building that generates credits over time."
+
+[units.classification]
+domain = "structure"
+roles = ["economy", "resource_generator"]
+tech_level = 1
+is_building = true
+is_bio = false
+
+[units.body]
+max_hp = 800
+mass = 9000.0
+radius = 25.0
+display_radius = 25.0
+requires_resource_node = true
+
+[units.movement]
+kind = "none"
+max_speed = 0.0
+acceleration = 0.0
+deceleration = 0.0
+turn_rate_degrees_per_second = 0.0
+
+[units.economy]
+cost = { "rw_mvp:credits" = 700 }
+build_time_seconds = 16.7
+resource_rates_per_second = { "rw_mvp:credits" = 8.0 }
+
+[units.vision]
+sight_range = 160.0
+fog_reveal = true
+
+[units.upgrades]
+options = [
+  { id = "rw_mvp:extractor_t2", cost = { "rw_mvp:credits" = 1400 }, build_time_seconds = 27.8, effect = "increase_credit_rate" },
+]
+
+[units.combat]
+weapons = []
+
+[units.render]
+body = "rw_mvp:sprite_extractor"
+shadow = "none"
+selection_radius = 25.0
+
+[units.source]
+ini = "units/extractor/extractor.ini"
+copy_from = "units/extractor/extractor_common.ini"
+key_values = { price = "700", max_hp = "800", generation_resources = "credits=8", upgrade_t2_price = "1400" }
+
+[[units]]
+id = "rw_mvp:gun_turret"
+
+[units.display]
+name = "Gun Turret"
+description = "Static ground defense."
+
+[units.classification]
+domain = "structure"
+roles = ["defense", "turret"]
+tech_level = 1
+is_building = true
+is_bio = false
+
+[units.body]
+max_hp = 700
+mass = 9000.0
+radius = 22.0
+display_radius = 22.0
+
+[units.movement]
+kind = "none"
+max_speed = 0.0
+acceleration = 0.0
+deceleration = 0.0
+turn_rate_degrees_per_second = 0.0
+
+[units.economy]
+cost = { "rw_mvp:credits" = 500 }
+build_time_seconds = 20.8
+
+[units.vision]
+sight_range = 210.0
+fog_reveal = true
+
+[units.combat]
+weapons = ["rw_mvp:turret_cannon"]
+
+[units.render]
+body = "rw_mvp:sprite_turret_base"
+turrets = [{ id = "main", sprite = "rw_mvp:sprite_turret_top" }]
+shadow = "none"
+selection_radius = 22.0
+
+[units.source]
+ini = "units/turrets/turret_t1.ini"
+copy_from = "units/turrets/turret_common_land.ini"
+key_values = { price = "500", max_hp = "700", range = "165", shoot_delay = "30", direct_damage = "41" }
+
+[[units]]
+id = "rw_mvp:tank"
+
+[units.display]
+name = "Tank"
+description = "Baseline direct-fire land combat unit."
+
+[units.classification]
+domain = "land"
+roles = ["assault", "armored"]
+tech_level = 1
+is_building = false
+is_bio = false
+
+[units.body]
+max_hp = 210
+mass = 3000.0
+radius = 11.0
+display_radius = 11.0
+soft_collision = 0.0
+
+[units.movement]
+kind = "land"
+max_speed = 1.1
+acceleration = 0.07
+deceleration = 0.17
+turn_rate_degrees_per_second = 246.0
+turn_acceleration = 0.25
+can_reverse = false
+ignores_body = false
+sliding = false
+
+[units.economy]
+cost = { "rw_mvp:credits" = 350 }
+build_time_seconds = 8.3
+
+[units.vision]
+sight_range = 190.0
+fog_reveal = true
+
+[units.combat]
+weapons = ["rw_mvp:tank_cannon"]
+
+[units.render]
+body = "rw_mvp:sprite_tank_body"
+turrets = [{ id = "main", sprite = "rw_mvp:sprite_tank_turret" }]
+animation = { moving_frames = [0, 1, 2], moving_fps = 1.0 }
+shadow = "auto"
+selection_radius = 11.0
+
+[units.source]
+ini = "units/tanks/tank.ini"
+key_values = { price = "350", max_hp = "210", mass = "3000", radius = "11", move_speed = "1.1", range = "130", shoot_delay = "75", direct_damage = "25" }
+
+[[units]]
+id = "rw_mvp:artillery"
+
+[units.display]
+name = "Artillery"
+description = "Long-range area fire support."
+
+[units.classification]
+domain = "land"
+roles = ["siege", "area_damage"]
+tech_level = 1
+is_building = false
+is_bio = false
+
+[units.body]
+max_hp = 140
+mass = 14000.0
+radius = 18.0
+display_radius = 18.0
+
+[units.movement]
+kind = "land"
+max_speed = 0.9
+acceleration = 0.05
+deceleration = 0.12
+turn_rate_degrees_per_second = 102.0
+turn_acceleration = 0.05
+can_reverse = false
+ignores_body = false
+sliding = false
+
+[units.economy]
+cost = { "rw_mvp:credits" = 900 }
+build_time_seconds = 12.0
+
+[units.vision]
+sight_range = 260.0
+fog_reveal = true
+
+[units.combat]
+weapons = ["rw_mvp:artillery_shell"]
+
+[units.render]
+body = "rw_mvp:sprite_artillery_body"
+animation = { moving_frames = [0, 1, 2], moving_fps = 1.0 }
+shadow = "auto"
+selection_radius = 18.0
+
+[units.source]
+ini = "units/tanks/artillery.ini"
+key_values = { price = "900", max_hp = "140", mass = "14000", radius = "18", move_speed = "0.9", range = "290", shoot_delay = "240", area_damage = "80", area_radius = "45" }
+
+[[units]]
+id = "rw_mvp:helicopter"
+
+[units.display]
+name = "Helicopter"
+description = "Fast air raider with light direct fire."
+
+[units.classification]
+domain = "air"
+roles = ["raider", "anti_light"]
+tech_level = 1
+is_building = false
+is_bio = false
+
+[units.body]
+max_hp = 150
+mass = 3000.0
+radius = 15.0
+display_radius = 9.0
+soft_collision = 24.0
+
+[units.movement]
+kind = "air"
+max_speed = 1.8
+acceleration = 0.03
+deceleration = 0.06
+turn_rate_degrees_per_second = 360.0
+turn_acceleration = 0.4
+target_height = 20.0
+target_height_drift = 2.0
+reverse_speed_ratio = 0.1
+ignores_body = true
+sliding = true
+sliding_direction_degrees = 181.0
+
+[units.economy]
+cost = { "rw_mvp:credits" = 700 }
+build_time_seconds = 13.9
+
+[units.vision]
+sight_range = 240.0
+fog_reveal = true
+
+[units.combat]
+weapons = ["rw_mvp:helicopter_gun"]
+
+[units.render]
+body = "rw_mvp:sprite_helicopter_body"
+attachments = [{ id = "rotor", sprite = "rw_mvp:sprite_helicopter_blades", mount = { x = 0.0, y = 0.0 }, spin_rate_degrees_per_second = 1800.0, layer = "over_body" }]
+shadow = "auto"
+selection_radius = 15.0
+
+[units.source]
+ini = "units/helicopter/helicopter.ini"
+key_values = { price = "700", max_hp = "150", radius = "15", move_speed = "1.8", target_height = "20", range = "130", shoot_delay = "60", direct_damage = "17" }
