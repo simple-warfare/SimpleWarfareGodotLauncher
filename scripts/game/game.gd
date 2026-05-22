@@ -11,6 +11,7 @@ const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
 const VISUAL_CORRECTION_SMOOTH_SPEED := 240.0
 const VISUAL_CORRECTION_MIN_OFFSET := 0.25
+const MISSING_UNIT_GRACE_FRAMES := 20
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -23,6 +24,7 @@ const VISUAL_CORRECTION_MIN_OFFSET := 0.25
 
 var _unit_nodes: Dictionary = {}
 var _unit_snapshots: Dictionary = {}
+var _missing_unit_counts: Dictionary = {}
 var _move_target_markers: Dictionary = {}
 var _selected_unit_id := 0
 var _map_bounds: Line2D
@@ -77,6 +79,7 @@ func _refresh_from_snapshot() -> void:
 			continue
 
 		alive_unit_ids[unit_id] = true
+		_missing_unit_counts.erase(unit_id)
 		_unit_snapshots[unit_id] = unit
 		_update_unit_node(unit_id, unit)
 		_sync_move_target_marker(unit_id, unit)
@@ -482,20 +485,24 @@ func _is_over_hud(screen_position: Vector2) -> bool:
 func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
 	var unit_node := _get_or_create_unit_node(unit_id)
 	unit_node.position = _unit_visual_position(unit_id, _unit_snapshot_position(unit))
-	var body: ColorRect = unit_node.get_node("Body")
+	var visuals: Node2D = unit_node.get_node("Visuals")
+	visuals.rotation_degrees = float(unit.get("facing_degrees", 0.0))
+
+	var body: ColorRect = visuals.get_node("Body")
 	var radius: float = float(unit.get("radius", UNIT_SIZE.x * 0.5))
 	var diameter: float = max(radius * 2.0, 8.0)
 	body.size = Vector2(diameter, diameter)
 	body.position = -body.size * 0.5
 	body.color = _team_color(int(unit.get("team", 0)))
-	body.rotation_degrees = float(unit.get("facing_degrees", 0.0))
+	body.rotation_degrees = 0.0
 
-	var selection: Line2D = unit_node.get_node("Selection")
+	var selection: Line2D = visuals.get_node("Selection")
 	var selection_radius: float = diameter * 0.5 + SELECTION_PADDING
 	selection.points = _selection_points(selection_radius)
 	selection.visible = unit_id == _selected_unit_id
 
-	unit_node.get_node("Label").text = "%s\nhp:%s" % [
+	var label: Label = unit_node.get_node("Label")
+	label.text = "%s\nhp:%s" % [
 		unit.get("display_name", unit.get("kind", "unit")),
 		"%s/%s" % [unit.get("health", 0), unit.get("max_health", 0)],
 	]
@@ -651,7 +658,7 @@ func _screen_to_world_position(screen_position: Vector2) -> Vector2:
 func _refresh_selection_visuals() -> void:
 	for unit_id in _unit_nodes.keys():
 		var node: Node2D = _unit_nodes[unit_id]
-		var selection: Line2D = node.get_node("Selection")
+		var selection: Line2D = node.get_node("Visuals/Selection")
 		selection.visible = int(unit_id) == _selected_unit_id
 
 
@@ -999,19 +1006,23 @@ func _get_or_create_unit_node(unit_id: int) -> Node2D:
 	unit_node.name = "Unit%s" % unit_id
 	unit_node.z_index = UNIT_Z
 
+	var visuals := Node2D.new()
+	visuals.name = "Visuals"
+	unit_node.add_child(visuals)
+
 	var body := ColorRect.new()
 	body.name = "Body"
 	body.size = UNIT_SIZE
 	body.position = -UNIT_SIZE * 0.5
 	body.color = Color(0.25, 0.82, 0.55, 1.0)
-	unit_node.add_child(body)
+	visuals.add_child(body)
 
 	var selection: Line2D = Line2D.new()
 	selection.name = "Selection"
 	selection.width = 2.5
 	selection.default_color = Color(1.0, 0.92, 0.34, 1.0)
 	selection.visible = false
-	unit_node.add_child(selection)
+	visuals.add_child(selection)
 
 	var label := Label.new()
 	label.name = "Label"
@@ -1125,14 +1136,21 @@ func _selection_points(radius: float) -> PackedVector2Array:
 
 func _remove_missing_units(alive_unit_ids: Dictionary) -> void:
 	for unit_id in _unit_nodes.keys():
-		if alive_unit_ids.has(unit_id):
+		var int_unit_id := int(unit_id)
+		if alive_unit_ids.has(int_unit_id):
+			_missing_unit_counts.erase(int_unit_id)
+			continue
+		var missing_count := int(_missing_unit_counts.get(int_unit_id, 0)) + 1
+		_missing_unit_counts[int_unit_id] = missing_count
+		if missing_count < MISSING_UNIT_GRACE_FRAMES:
 			continue
 
 		var node: Node = _unit_nodes[unit_id]
 		_unit_nodes.erase(unit_id)
 		_unit_snapshots.erase(unit_id)
+		_missing_unit_counts.erase(int_unit_id)
 		_visual_correction_offsets.erase(unit_id)
-		_remove_move_target_marker(int(unit_id))
-		if int(unit_id) == _selected_unit_id:
+		_remove_move_target_marker(int_unit_id)
+		if int_unit_id == _selected_unit_id:
 			_selected_unit_id = 0
 		node.queue_free()
