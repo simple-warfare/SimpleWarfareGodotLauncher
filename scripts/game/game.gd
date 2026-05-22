@@ -9,10 +9,6 @@ const OBJECT_LAYER_Z_BASE := 40
 const MOVE_TARGET_Z := 80
 const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
-const VISUAL_CORRECTION_SMOOTH_SPEED := 720.0
-const VISUAL_CORRECTION_MIN_OFFSET := 0.25
-const VISUAL_CORRECTION_JUMP_THRESHOLD := 2.0
-const VISUAL_CORRECTION_MAX_SMOOTH_OFFSET := 4096.0
 const MISSING_UNIT_GRACE_FRAMES := 600
 
 @onready var _world: Node2D = %World
@@ -36,8 +32,6 @@ var _last_tile_layers_key := ""
 var _last_objects_key := ""
 var _tile_texture_cache: Dictionary = {}
 var _content_package_root := ""
-var _visual_correction_offsets: Dictionary = {}
-var _last_visual_correction_sequence := 0
 var _frame_delta := 0.0
 var _camera_initialized := false
 var _camera_min_zoom := 0.5
@@ -69,7 +63,6 @@ func _refresh_from_snapshot() -> void:
 	var room: Dictionary = _snapshot_room(snapshot)
 	_refresh_map(map)
 	_refresh_objects(objects)
-	_capture_reconciliation_visual_correction(commands, units)
 
 	var alive_unit_ids := {}
 	for unit in units:
@@ -486,9 +479,7 @@ func _is_over_hud(screen_position: Vector2) -> bool:
 
 func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
 	var unit_node := _get_or_create_unit_node(unit_id)
-	var snapshot_position := _unit_snapshot_position(unit)
-	_capture_unit_snapshot_jump(unit_id, unit_node, snapshot_position)
-	unit_node.position = _unit_visual_position(unit_id, snapshot_position)
+	unit_node.position = _unit_snapshot_position(unit)
 	var visuals: Node2D = unit_node.get_node("Visuals")
 	visuals.rotation_degrees = float(unit.get("facing_degrees", 0.0))
 
@@ -595,63 +586,6 @@ func _unit_snapshot_position(unit: Dictionary) -> Vector2:
 		float(unit.get("x", 0.0)),
 		float(unit.get("y", 0.0))
 	)
-
-
-func _capture_reconciliation_visual_correction(commands: Dictionary, units: Array) -> void:
-	var sequence := int(commands.get("last_reconciled_sequence", 0))
-	if sequence <= 0 || sequence == _last_visual_correction_sequence:
-		return
-
-	_last_visual_correction_sequence = sequence
-	var correction := str(commands.get("last_reconciliation_correction", ""))
-	if correction != "smooth_correction" && correction != "snap_correction":
-		_visual_correction_offsets.clear()
-		return
-
-	for unit_value in units:
-		if typeof(unit_value) != TYPE_DICTIONARY:
-			continue
-
-		var unit: Dictionary = unit_value
-		var unit_id := int(unit.get("id", 0))
-		if unit_id == 0 || !_unit_nodes.has(unit_id):
-			continue
-
-		var unit_node: Node2D = _unit_nodes[unit_id]
-		var offset := unit_node.position - _unit_snapshot_position(unit)
-		var offset_length := offset.length()
-		if offset_length > VISUAL_CORRECTION_MIN_OFFSET && offset_length <= VISUAL_CORRECTION_MAX_SMOOTH_OFFSET:
-			_visual_correction_offsets[unit_id] = offset
-		elif offset_length > VISUAL_CORRECTION_MAX_SMOOTH_OFFSET:
-			_visual_correction_offsets.erase(unit_id)
-
-
-func _capture_unit_snapshot_jump(unit_id: int, unit_node: Node2D, snapshot_position: Vector2) -> void:
-	var offset := unit_node.position - snapshot_position
-	var offset_length := offset.length()
-	if offset_length <= VISUAL_CORRECTION_JUMP_THRESHOLD:
-		return
-	if offset_length <= VISUAL_CORRECTION_MAX_SMOOTH_OFFSET:
-		_visual_correction_offsets[unit_id] = offset
-	else:
-		_visual_correction_offsets.erase(unit_id)
-
-
-func _unit_visual_position(unit_id: int, snapshot_position: Vector2) -> Vector2:
-	if !_visual_correction_offsets.has(unit_id):
-		return snapshot_position
-
-	var offset: Vector2 = _visual_correction_offsets[unit_id]
-	var next_offset := offset.move_toward(
-		Vector2.ZERO,
-		VISUAL_CORRECTION_SMOOTH_SPEED * maxf(_frame_delta, 0.0)
-	)
-	if next_offset.length() <= VISUAL_CORRECTION_MIN_OFFSET:
-		_visual_correction_offsets.erase(unit_id)
-		return snapshot_position
-
-	_visual_correction_offsets[unit_id] = next_offset
-	return snapshot_position + next_offset
 
 
 func _unit_move_target(unit: Dictionary) -> Dictionary:
@@ -1167,7 +1101,6 @@ func _remove_missing_units(alive_unit_ids: Dictionary) -> void:
 		_unit_nodes.erase(unit_id)
 		_unit_snapshots.erase(unit_id)
 		_missing_unit_counts.erase(int_unit_id)
-		_visual_correction_offsets.erase(unit_id)
 		_remove_move_target_marker(int_unit_id)
 		if int_unit_id == _selected_unit_id:
 			_selected_unit_id = 0
