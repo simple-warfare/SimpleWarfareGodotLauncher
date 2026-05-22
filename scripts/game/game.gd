@@ -9,7 +9,7 @@ const OBJECT_LAYER_Z_BASE := 40
 const MOVE_TARGET_Z := 80
 const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
-const MISSING_UNIT_GRACE_FRAMES := 600
+const MISSING_UNIT_GRACE_FRAMES := 6
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
