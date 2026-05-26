@@ -89,7 +89,7 @@ func _refresh_action_state() -> void:
 func _start_singleplayer() -> void:
 	AppState.clear_error()
 	var result := RustBackend.start_singleplayer()
-	if result == "ok":
+	if bool(result.get("ok", false)):
 		AppState.launch_mode = AppState.LaunchMode.SINGLEPLAYER
 		AppState.server_addr = ""
 		SceneRouter.go_to_game()
@@ -100,7 +100,7 @@ func _start_singleplayer() -> void:
 func _start_host() -> void:
 	AppState.clear_error()
 	var result := RustBackend.start_host()
-	if result == "ok":
+	if bool(result.get("ok", false)):
 		AppState.launch_mode = AppState.LaunchMode.HOST
 		AppState.server_addr = DEFAULT_SERVER_ADDR
 		SceneRouter.go_to_room()
@@ -120,7 +120,7 @@ func _join_remote_game() -> void:
 		_join_address_input.text = server_addr
 
 	var result := RustBackend.start_client(server_addr)
-	if result == "ok":
+	if bool(result.get("ok", false)):
 		AppState.launch_mode = AppState.LaunchMode.CLIENT
 		AppState.server_addr = server_addr
 		SceneRouter.go_to_room()

@@ -178,84 +178,77 @@ func get_frontend_snapshot() -> Dictionary:
 	return snapshot
 
 
-func initialize_with_assets_path(assets_path: String) -> String:
+func initialize_with_assets_path(assets_path: String) -> Dictionary:
 	return initialize_with_paths(assets_path, assets_path.path_join("content_packages/official_base_game"))
 
 
-func initialize_with_paths(assets_path: String, content_package_path: String) -> String:
+func initialize_with_paths(assets_path: String, content_package_path: String) -> Dictionary:
 	if !_available:
-		_last_result = "rusty_core_unavailable"
-		_last_error_detail = "RustyCore class is not available."
+		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(result)
 		state_changed.emit()
-		return _last_result
+		return result
 
 	if assets_path.is_empty():
-		_last_result = "invalid_assets_root"
-		_last_error_detail = "assets path is empty before calling Rust."
+		var result := _runtime_result(false, "invalid_assets_root", "assets path is empty before calling Rust.")
+		_store_runtime_result(result)
 		state_changed.emit()
-		return _last_result
+		return result
 
 	if content_package_path.is_empty():
-		_last_result = "invalid_content_root"
-		_last_error_detail = "content package path is empty before calling Rust."
+		var result := _runtime_result(false, "invalid_content_root", "content package path is empty before calling Rust.")
+		_store_runtime_result(result)
 		state_changed.emit()
-		return _last_result
+		return result
 
 	# Godot 的 user:// 是虚拟路径；传给 Rust 前必须转成平台真实路径。
-	_last_result = str(_rusty_core.call("initialize_with_paths", assets_path, content_package_path))
-	_refresh_error_detail()
+	var result := _store_runtime_result(_rusty_core.call("initialize_with_paths", assets_path, content_package_path))
 	state_changed.emit()
-	return _last_result
+	return result
 
 
-func start_singleplayer() -> String:
+func start_singleplayer() -> Dictionary:
 	return _call_runtime_mode("start_singleplayer")
 
 
-func start_host() -> String:
+func start_host() -> Dictionary:
 	return _call_runtime_mode("start_host")
 
 
-func start_client(server_addr: String) -> String:
+func start_client(server_addr: String) -> Dictionary:
 	if !_available:
-		_last_result = "rusty_core_unavailable"
-		_last_error_detail = "RustyCore class is not available."
+		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(result)
 		state_changed.emit()
-		return _last_result
+		return result
 
 	# Rust runtime 会启动 UDP client；菜单层负责等待首个 server snapshot 后进入游戏场景。
-	_last_result = str(_rusty_core.call("start_client", server_addr))
-	_refresh_error_detail()
+	var result := _store_runtime_result(_rusty_core.call("start_client", server_addr))
 	state_changed.emit()
-	return _last_result
+	return result
 
 
-func shutdown() -> String:
+func shutdown() -> Dictionary:
 	if !_available:
-		_last_result = "rusty_core_unavailable"
-		_last_error_detail = "RustyCore class is not available."
+		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(result)
 		state_changed.emit()
-		return _last_result
+		return result
 
-	_last_result = str(_rusty_core.call("shutdown"))
-	_refresh_error_detail()
+	var result := _store_runtime_result(_rusty_core.call("shutdown"))
 	state_changed.emit()
-	return _last_result
+	return result
 
 
-func update_runtime(delta_seconds: float) -> String:
+func update_runtime(delta_seconds: float) -> Dictionary:
 	if !_available:
-		_last_result = "rusty_core_unavailable"
-		_last_error_detail = "RustyCore class is not available."
-		return _last_result
+		return _store_runtime_result(_runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available."))
 
 	# 只有进入运行态后才每帧推进 Rust，避免菜单空闲时刷出 not_running。
 	if get_status() != "running":
-		return _last_result
+		return _runtime_result(_last_result == "ok", _last_result, _last_error_detail)
 
-	_last_result = str(_rusty_core.call("update", delta_seconds))
-	_refresh_error_detail()
-	return _last_result
+	return _store_runtime_result(_rusty_core.call("update", delta_seconds))
 
 
 func issue_move_command(entity_id: int, target_position: Vector2) -> Dictionary:
@@ -304,26 +297,16 @@ func submit_player_command(command: Dictionary) -> Dictionary:
 	return _store_command_feedback(command_feedback)
 
 
-func _call_runtime_mode(method_name: String) -> String:
+func _call_runtime_mode(method_name: String) -> Dictionary:
 	if !_available:
-		_last_result = "rusty_core_unavailable"
-		_last_error_detail = "RustyCore class is not available."
+		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(result)
 		state_changed.emit()
-		return _last_result
+		return result
 
-	_last_result = str(_rusty_core.call(method_name))
-	_refresh_error_detail()
+	var result := _store_runtime_result(_rusty_core.call(method_name))
 	state_changed.emit()
-	return _last_result
-
-
-func _refresh_error_detail() -> void:
-	if !_available:
-		return
-	if _last_result == "ok":
-		_last_error_detail = ""
-		return
-	_last_error_detail = str(_rusty_core.call("get_last_error_detail"))
+	return result
 
 
 func _command_feedback(accepted: bool, status: String, rejected_reason: String, detail: String) -> Dictionary:
@@ -343,6 +326,29 @@ func _store_command_feedback(feedback: Dictionary) -> Dictionary:
 	_last_result = str(feedback.get("status", "rejected"))
 	_last_error_detail = str(feedback.get("detail", ""))
 	return feedback
+
+
+func _runtime_result(ok: bool, code: String, detail: String) -> Dictionary:
+	return {
+		"ok": ok,
+		"code": code,
+		"detail": detail,
+	}
+
+
+func _store_runtime_result(result_value: Variant) -> Dictionary:
+	var result := _runtime_result(false, "invalid_runtime_result", "Rust returned an invalid runtime result value.")
+	if typeof(result_value) == TYPE_DICTIONARY:
+		var dictionary: Dictionary = result_value
+		result = _runtime_result(
+			bool(dictionary.get("ok", false)),
+			str(dictionary.get("code", "invalid_runtime_result")),
+			str(dictionary.get("detail", ""))
+		)
+
+	_last_result = str(result.get("code", "invalid_runtime_result"))
+	_last_error_detail = str(result.get("detail", ""))
+	return result
 
 
 func _empty_frontend_snapshot(status: String) -> Dictionary:
