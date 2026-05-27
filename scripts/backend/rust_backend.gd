@@ -10,6 +10,8 @@ var _last_error_detail := ""
 var _diagnostics_window: Window
 var _diagnostics_text: TextEdit
 var _diagnostics_status_label: Label
+var _diagnostics_level_filter: OptionButton
+var _diagnostics_target_filter: LineEdit
 
 
 func _ready() -> void:
@@ -96,9 +98,9 @@ func get_latest_diagnostic_summary() -> String:
 	]
 
 
-func get_recent_diagnostics_text(limit: int = 5) -> String:
+func get_recent_diagnostics_text(limit: int = 5, min_level: String = "", target_filter: String = "") -> String:
 	var diagnostics := get_diagnostics_snapshot()
-	return _format_diagnostics_snapshot(diagnostics, limit)
+	return _format_diagnostics_snapshot(diagnostics, limit, min_level, target_filter)
 
 
 func open_diagnostics_panel() -> void:
@@ -117,14 +119,14 @@ func export_diagnostics() -> String:
 		_set_diagnostics_status(error_message)
 		return ""
 
-	file.store_string(get_recent_diagnostics_text(128))
+	file.store_string(get_recent_diagnostics_text(128, _current_diagnostics_min_level(), _current_diagnostics_target_filter()))
 	var global_path := ProjectSettings.globalize_path(export_path)
 	_set_diagnostics_status("exported to %s" % global_path)
 	return global_path
 
 
 func copy_diagnostics_to_clipboard() -> void:
-	DisplayServer.clipboard_set(get_recent_diagnostics_text(128))
+	DisplayServer.clipboard_set(get_recent_diagnostics_text(128, _current_diagnostics_min_level(), _current_diagnostics_target_filter()))
 	_set_diagnostics_status("copied diagnostics to clipboard")
 
 
@@ -134,14 +136,12 @@ func clear_diagnostics() -> void:
 	_refresh_diagnostics_panel()
 
 
-func _format_diagnostics_snapshot(diagnostics: Dictionary, limit: int) -> String:
-	var entries := _diagnostic_entries_from_snapshot(diagnostics)
-	if entries.is_empty() || limit <= 0:
-		var latest_panic := str(diagnostics.get("latest_panic", ""))
-		if latest_panic.is_empty():
-			return ""
-		return "latest_panic=%s" % latest_panic
-
+func _format_diagnostics_snapshot(diagnostics: Dictionary, limit: int, min_level: String = "", target_filter: String = "") -> String:
+	var entries := _filter_diagnostic_entries(
+		_diagnostic_entries_from_snapshot(diagnostics),
+		min_level,
+		target_filter
+	)
 	var lines := PackedStringArray()
 	var dropped_count := int(diagnostics.get("dropped_count", 0))
 	var latest_panic := str(diagnostics.get("latest_panic", ""))
@@ -149,14 +149,12 @@ func _format_diagnostics_snapshot(diagnostics: Dictionary, limit: int) -> String
 		lines.append("dropped_count=%s" % dropped_count)
 	if !latest_panic.is_empty():
 		lines.append("latest_panic=%s" % latest_panic)
+	if entries.is_empty() || limit <= 0:
+		return "\n".join(lines)
 
 	var start_index: int = max(0, entries.size() - limit)
 	for index in range(start_index, entries.size()):
-		var entry_value: Variant = entries[index]
-		if typeof(entry_value) != TYPE_DICTIONARY:
-			continue
-
-		var entry: Dictionary = entry_value
+		var entry: Dictionary = entries[index]
 		lines.append("#%s %s %s: %s" % [
 			entry.get("sequence", 0),
 			entry.get("level", "info"),
@@ -402,6 +400,30 @@ func _create_diagnostics_panel() -> void:
 	header.add_theme_font_size_override("font_size", 18)
 	root.add_child(header)
 
+	var filters := HBoxContainer.new()
+	filters.add_theme_constant_override("separation", 8)
+	root.add_child(filters)
+
+	var level_label := Label.new()
+	level_label.text = "Level"
+	filters.add_child(level_label)
+
+	_diagnostics_level_filter = OptionButton.new()
+	for label in ["All", "Trace", "Debug", "Info", "Warn", "Error"]:
+		_diagnostics_level_filter.add_item(label)
+	_diagnostics_level_filter.item_selected.connect(_on_diagnostics_filter_changed)
+	filters.add_child(_diagnostics_level_filter)
+
+	var target_label := Label.new()
+	target_label.text = "Target"
+	filters.add_child(target_label)
+
+	_diagnostics_target_filter = LineEdit.new()
+	_diagnostics_target_filter.placeholder_text = "substring"
+	_diagnostics_target_filter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_diagnostics_target_filter.text_changed.connect(_on_diagnostics_filter_changed)
+	filters.add_child(_diagnostics_target_filter)
+
 	_diagnostics_text = TextEdit.new()
 	_diagnostics_text.editable = false
 	_diagnostics_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -434,10 +456,14 @@ func _refresh_diagnostics_panel() -> void:
 	if _diagnostics_text == null || !is_instance_valid(_diagnostics_text):
 		return
 
-	var text := get_recent_diagnostics_text(128)
+	var text := get_recent_diagnostics_text(128, _current_diagnostics_min_level(), _current_diagnostics_target_filter())
 	if text.is_empty():
 		text = "No Rust diagnostics recorded."
 	_diagnostics_text.text = text
+
+
+func _on_diagnostics_filter_changed(_value: Variant = null) -> void:
+	_refresh_diagnostics_panel()
 
 
 func _close_diagnostics_panel() -> void:
@@ -462,6 +488,56 @@ func _diagnostic_entries_from_snapshot(diagnostics: Dictionary) -> Array:
 
 	var entries: Array = entries_value
 	return entries
+
+
+func _filter_diagnostic_entries(entries: Array, min_level: String, target_filter: String) -> Array[Dictionary]:
+	var filtered: Array[Dictionary] = []
+	var min_level_rank := _diagnostic_level_rank(min_level)
+	var target_query := target_filter.strip_edges().to_lower()
+
+	for entry_value in entries:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+
+		var entry: Dictionary = entry_value
+		if min_level_rank >= 0 && _diagnostic_level_rank(str(entry.get("level", "info"))) < min_level_rank:
+			continue
+		if !target_query.is_empty() && !str(entry.get("target", "rust")).to_lower().contains(target_query):
+			continue
+
+		filtered.append(entry)
+
+	return filtered
+
+
+func _diagnostic_level_rank(level: String) -> int:
+	match level.strip_edges().to_lower():
+		"trace":
+			return 0
+		"debug":
+			return 1
+		"info":
+			return 2
+		"warn", "warning":
+			return 3
+		"error":
+			return 4
+		_:
+			return -1
+
+
+func _current_diagnostics_min_level() -> String:
+	if _diagnostics_level_filter == null || !is_instance_valid(_diagnostics_level_filter):
+		return ""
+
+	return _diagnostics_level_filter.get_item_text(_diagnostics_level_filter.selected)
+
+
+func _current_diagnostics_target_filter() -> String:
+	if _diagnostics_target_filter == null || !is_instance_valid(_diagnostics_target_filter):
+		return ""
+
+	return _diagnostics_target_filter.text
 
 
 func _empty_diagnostics_snapshot() -> Dictionary:
