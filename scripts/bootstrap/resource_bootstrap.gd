@@ -6,7 +6,7 @@ const MODS_ROOT := "user://mods"
 const SOURCE_CONTENT_PACKAGES_ROOT := "res://assets/content_packages"
 const TARGET_CONTENT_PACKAGES_ROOT := TARGET_ROOT + "/content_packages"
 const DEFAULT_PACKAGE_NAME := "simple_warfare_core_v0_1"
-const BOOTSTRAP_VERSION := "3"
+const BOOTSTRAP_VERSION := "5"
 const VERSION_FILE := TARGET_ROOT + "/.bootstrap_version"
 
 

@@ -17,4 +17,233 @@ max_zoom = 2.5
 format = "tiled"
 path = "maps/duel_fields/source/duel_fields.tmx"
 required_for_runtime = false
+[terrain]
+source = "map_editor_export"
+runtime_generates_visual_tiles = false
 
+[terrain.logic]
+encoding = "fixed_width_rows"
+palette = "data/terrain/terrain_types.toml"
+authoritative_for = [
+  "pathing",
+  "collision",
+  "resource_hints",
+  "placement",
+  "server_simulation",
+]
+
+[[terrain.logic_layers]]
+id = "ground"
+z_index = 0
+width = 48
+height = 32
+rows = [
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGOOGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGOOGGGG",
+  "GGGGGGOOGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGOOGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGOOGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGOOGGGG",
+  "GGGGGGOOGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGOOGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+]
+
+[terrain.visual]
+source_logic_layer = "ground"
+encoding = "fixed_width_rows"
+tileset = "simple_warfare:tileset.basic"
+authored_by = "map_editor_or_importer"
+authoritative_for = [
+  "terrain_rendering",
+  "tile_transitions",
+  "decorative_variants",
+]
+
+[[terrain.visual_layers]]
+id = "ground_visual"
+z_index = 0
+width = 48
+height = 32
+tile_format = "terrain_visual_code"
+rows = [
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGwwwwGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGwwwwGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGooGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGooGGGGG",
+  "GGGGGGOOGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGOOGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGwwwwGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGwwwwGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGwwwwGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGooGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGooGGGGG",
+  "GGGGGGOOGGGGGGGGGGGGGGRRRRGGGGGGGGGGGGGGGGOOGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGrrrrGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGwwwwGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGWWWWGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGwwwwGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+]
+
+[[terrain.visual_codes]]
+code = "G"
+tile = "simple_warfare:tile.grass.center"
+
+[[terrain.visual_codes]]
+code = "R"
+tile = "simple_warfare:tile.road.center"
+
+[[terrain.visual_codes]]
+code = "r"
+tile = "simple_warfare:tile.road.edge"
+
+[[terrain.visual_codes]]
+code = "W"
+tile = "simple_warfare:tile.water.center"
+
+[[terrain.visual_codes]]
+code = "w"
+tile = "simple_warfare:tile.water.edge"
+
+[[terrain.visual_codes]]
+code = "O"
+tile = "simple_warfare:tile.ore.center"
+
+[[terrain.visual_codes]]
+code = "o"
+tile = "simple_warfare:tile.ore.edge"
+[[initial_units]]
+unit = "simple_warfare:unit.factory"
+team = 0
+x = 160.0
+y = 260.0
+facing_degrees = 0.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.engineer"
+team = 0
+x = 160.0
+y = 360.0
+facing_degrees = 0.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.tank"
+team = 0
+x = 240.0
+y = 320.0
+facing_degrees = 0.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.factory"
+team = 1
+x = 800.0
+y = 380.0
+facing_degrees = 180.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.engineer"
+team = 1
+x = 800.0
+y = 280.0
+facing_degrees = 180.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.tank"
+team = 1
+x = 720.0
+y = 320.0
+facing_degrees = 180.0
+
+[[teams]]
+id = 0
+name = "Blue"
+faction = "simple_warfare:faction.human"
+ally_group = 0
+starting_resources = { "simple_warfare:resource.credits" = 4000 }
+
+[[teams]]
+id = 1
+name = "Red"
+faction = "simple_warfare:faction.human"
+ally_group = 1
+starting_resources = { "simple_warfare:resource.credits" = 4000 }
+
+[[object_layers]]
+id = "decorative"
+z_index = 5
+
+[[object_layers.objects]]
+id = "center_marker"
+kind = "decorative"
+x = 480.0
+y = 320.0
+width = 8.0
+height = 8.0
+visible = false
+
+[[object_layers]]
+id = "resources"
+z_index = 5
+
+[[object_layers.objects]]
+id = "west_credits"
+kind = "resource_node"
+x = 120.0
+y = 320.0
+width = 60.0
+height = 60.0
+
+[object_layers.objects.properties]
+resource = "simple_warfare:resource.credits"
+amount = "6000"
+
+[[object_layers.objects]]
+id = "east_credits"
+kind = "resource_node"
+x = 840.0
+y = 320.0
+width = 60.0
+height = 60.0
+
+[object_layers.objects.properties]
+resource = "simple_warfare:resource.credits"
+amount = "6000"

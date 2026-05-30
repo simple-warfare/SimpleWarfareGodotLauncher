@@ -26,8 +26,10 @@ var _missing_unit_counts: Dictionary = {}
 var _move_target_markers: Dictionary = {}
 var _selected_unit_id := 0
 var _map_bounds: Line2D
+var _map_background: ColorRect
 var _tile_layer_root: Node2D
 var _object_layer_root: Node2D
+var _map_object_layer_root: Node2D
 var _last_tile_layers_key := ""
 var _last_objects_key := ""
 var _tile_texture_cache: Dictionary = {}
@@ -148,6 +150,7 @@ func _refresh_map(map: Dictionary) -> void:
 		return
 
 	var map_size: Vector2 = Vector2(width * tile_size, height * tile_size)
+	_ensure_map_background(map_size)
 	var bounds: Line2D = _get_or_create_map_bounds()
 	bounds.points = PackedVector2Array([
 		Vector2.ZERO,
@@ -157,6 +160,7 @@ func _refresh_map(map: Dictionary) -> void:
 		Vector2.ZERO,
 	])
 	_refresh_tile_layers(map, tile_size, map_size)
+	_refresh_map_objects(map)
 	_apply_camera_config(map, map_size)
 
 
@@ -261,6 +265,26 @@ func _refresh_objects(objects: Array) -> void:
 		_add_object_rect(root, object)
 
 
+func _refresh_map_objects(map: Dictionary) -> void:
+	var object_layers := _map_array(map, "object_layers")
+	if object_layers.is_empty():
+		return
+
+	var root := _get_or_create_map_object_layer_root()
+	_clear_children(root)
+
+	for layer_value in object_layers:
+		if typeof(layer_value) != TYPE_DICTIONARY:
+			continue
+		var layer: Dictionary = layer_value
+		var layer_z_index := OBJECT_LAYER_Z_BASE + int(layer.get("z_index", 0))
+		for object_value in _map_array(layer, "objects"):
+			if typeof(object_value) != TYPE_DICTIONARY:
+				continue
+			var object: Dictionary = object_value
+			_add_map_object_rect(root, object, layer_z_index)
+
+
 func _map_tile_definitions(tilesets: Array) -> Dictionary:
 	var definitions := {}
 	for tileset_value in tilesets:
@@ -311,12 +335,22 @@ func _parse_tile_color(color_text: String, tile_id: int) -> Color:
 		return Color.html(html)
 
 	match tile_id:
+		0:
+			return Color(0.22, 0.55, 0.22, 1.0)
 		1:
-			return Color(0.30, 0.31, 0.27, 1.0)
+			return Color(0.45, 0.42, 0.35, 1.0)
 		2:
-			return Color(0.14, 0.28, 0.38, 1.0)
+			return Color(0.20, 0.40, 0.60, 1.0)
+		3:
+			return Color(0.35, 0.50, 0.30, 1.0)
+		4:
+			return Color(0.50, 0.40, 0.25, 1.0)
+		5:
+			return Color(0.70, 0.55, 0.15, 1.0)
+		6:
+			return Color(0.60, 0.50, 0.20, 1.0)
 		_:
-			return Color(0.13, 0.27, 0.18, 1.0)
+			return Color(0.25, 0.30, 0.25, 1.0)
 
 
 func _tile_color(tile_definition: Dictionary, tile_id: int) -> Color:
@@ -403,6 +437,22 @@ func _add_object_rect(parent: Node, object: Dictionary) -> void:
 	rect.size = Vector2(width, height)
 	rect.rotation_degrees = float(object.get("rotation_degrees", 0.0))
 	rect.z_index = OBJECT_LAYER_Z_BASE + int(object.get("z_index", 0))
+	rect.color = _object_color(str(object.get("kind", "")))
+	parent.add_child(rect)
+
+
+func _add_map_object_rect(parent: Node, object: Dictionary, z_index: int) -> void:
+	var width: float = max(float(object.get("width", 24.0)), 8.0)
+	var height: float = max(float(object.get("height", 24.0)), 8.0)
+	var rect := ColorRect.new()
+	rect.name = "MapObject_%s" % str(object.get("id", "object"))
+	rect.position = Vector2(
+		float(object.get("x", 0.0)) - width * 0.5,
+		float(object.get("y", 0.0)) - height * 0.5
+	)
+	rect.size = Vector2(width, height)
+	rect.rotation_degrees = float(object.get("rotation_degrees", 0.0))
+	rect.z_index = z_index
 	rect.color = _object_color(str(object.get("kind", "")))
 	parent.add_child(rect)
 
@@ -1000,6 +1050,20 @@ func _get_or_create_map_bounds() -> Line2D:
 	return _map_bounds
 
 
+func _ensure_map_background(map_size: Vector2) -> void:
+	if _map_background != null:
+		_map_background.size = map_size
+		return
+
+	_map_background = ColorRect.new()
+	_map_background.name = "MapBackground"
+	_map_background.position = Vector2.ZERO
+	_map_background.size = map_size
+	_map_background.color = Color(0.08, 0.10, 0.08, 1.0)
+	_map_background.z_index = -10
+	_world.add_child(_map_background)
+
+
 func _get_or_create_tile_layer_root() -> Node2D:
 	if _tile_layer_root != null:
 		return _tile_layer_root
@@ -1018,6 +1082,16 @@ func _get_or_create_object_layer_root() -> Node2D:
 	_object_layer_root.name = "ObjectLayers"
 	_world.add_child(_object_layer_root)
 	return _object_layer_root
+
+
+func _get_or_create_map_object_layer_root() -> Node2D:
+	if _map_object_layer_root != null:
+		return _map_object_layer_root
+
+	_map_object_layer_root = Node2D.new()
+	_map_object_layer_root.name = "MapObjectLayers"
+	_world.add_child(_map_object_layer_root)
+	return _map_object_layer_root
 
 
 func _clear_children(node: Node) -> void:

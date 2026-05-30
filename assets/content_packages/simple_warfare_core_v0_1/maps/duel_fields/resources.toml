@@ -1,18 +1,27 @@
-[[resource_nodes]]
+[[object_layers]]
+id = "resources"
+z_index = 5
+
+[[object_layers.objects]]
 id = "west_credits"
-resource = "simple_warfare:resource.credits"
+kind = "resource_node"
 x = 120.0
 y = 320.0
-amount = 6000
-radius = 30.0
-claim_mode = "build_extractor"
+width = 60.0
+height = 60.0
 
-[[resource_nodes]]
-id = "east_credits"
+[object_layers.objects.properties]
 resource = "simple_warfare:resource.credits"
+amount = "6000"
+
+[[object_layers.objects]]
+id = "east_credits"
+kind = "resource_node"
 x = 840.0
 y = 320.0
-amount = 6000
-radius = 30.0
-claim_mode = "build_extractor"
+width = 60.0
+height = 60.0
 
+[object_layers.objects.properties]
+resource = "simple_warfare:resource.credits"
+amount = "6000"

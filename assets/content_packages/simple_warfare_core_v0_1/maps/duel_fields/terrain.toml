@@ -13,7 +13,7 @@ authoritative_for = [
   "server_simulation",
 ]
 
-[[logic_layers]]
+[[terrain.logic_layers]]
 id = "ground"
 z_index = 0
 width = 48
@@ -64,7 +64,7 @@ authoritative_for = [
   "decorative_variants",
 ]
 
-[[visual_layers]]
+[[terrain.visual_layers]]
 id = "ground_visual"
 z_index = 0
 width = 48
@@ -105,30 +105,30 @@ rows = [
   "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
 ]
 
-[[visual_codes]]
+[[terrain.visual_codes]]
 code = "G"
 tile = "simple_warfare:tile.grass.center"
 
-[[visual_codes]]
+[[terrain.visual_codes]]
 code = "R"
 tile = "simple_warfare:tile.road.center"
 
-[[visual_codes]]
+[[terrain.visual_codes]]
 code = "r"
 tile = "simple_warfare:tile.road.edge"
 
-[[visual_codes]]
+[[terrain.visual_codes]]
 code = "W"
 tile = "simple_warfare:tile.water.center"
 
-[[visual_codes]]
+[[terrain.visual_codes]]
 code = "w"
 tile = "simple_warfare:tile.water.edge"
 
-[[visual_codes]]
+[[terrain.visual_codes]]
 code = "O"
 tile = "simple_warfare:tile.ore.center"
 
-[[visual_codes]]
+[[terrain.visual_codes]]
 code = "o"
 tile = "simple_warfare:tile.ore.edge"

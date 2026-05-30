@@ -1,7 +1,13 @@
-[[objects]]
+[[object_layers]]
+id = "decorative"
+z_index = 5
+
+[[object_layers.objects]]
 id = "center_marker"
 kind = "decorative"
 x = 480.0
 y = 320.0
+width = 8.0
+height = 8.0
 visible = false
 
