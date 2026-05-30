@@ -1,0 +1,8 @@
+id = "simple_warfare:effect.explosion_small"
+kind = "visual"
+priority = "normal"
+life_seconds = 0.45
+texture = "simple_warfare:texture.effect.explosion_small"
+scale = { from = 0.6, to = 1.2 }
+fade_out = true
+

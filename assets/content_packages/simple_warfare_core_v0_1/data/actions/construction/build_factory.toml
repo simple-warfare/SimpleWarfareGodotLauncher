@@ -1,0 +1,23 @@
+id = "simple_warfare:action.build_factory"
+display_name = "simple_warfare:loc.action.build_factory"
+kind = "build_structure"
+
+[requirements]
+all = [
+  { type = "caster_role", role = "builder" },
+  { type = "team_resource_at_least", resource = "simple_warfare:resource.credits", amount = 1000 },
+  { type = "target_terrain_passable", pathing_layer = "land" },
+]
+
+[cost]
+team = { "simple_warfare:resource.credits" = 1000 }
+
+[timing]
+duration_seconds = 16.7
+queue = "construction"
+interruptible = true
+
+[[effects]]
+type = "place_structure"
+unit = "simple_warfare:unit.factory"
+

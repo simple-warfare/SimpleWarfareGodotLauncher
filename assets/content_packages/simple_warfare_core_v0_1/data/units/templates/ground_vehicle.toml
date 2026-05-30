@@ -1,0 +1,17 @@
+id = "simple_warfare:template.ground_vehicle"
+
+[classification]
+domain = "land"
+tags = ["ground", "vehicle"]
+is_building = false
+is_bio = false
+
+[movement]
+profile = "simple_warfare:movement.land_tracked"
+
+[body]
+collision = "ground_unit"
+
+[render]
+shadow = "auto"
+

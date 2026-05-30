@@ -1,0 +1,10 @@
+catalog = "data/assets.toml"
+
+[groups]
+unit_textures = "assets/textures/units"
+terrain_textures = "assets/textures/terrain"
+projectile_textures = "assets/textures/projectiles"
+effect_textures = "assets/textures/effects"
+ui_textures = "assets/textures/ui"
+sfx = "assets/audio/sfx"
+music = "assets/audio/music"

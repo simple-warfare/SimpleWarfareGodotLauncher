@@ -1,0 +1,11 @@
+id = "simple_warfare:template.factory"
+templates = ["simple_warfare:template.building"]
+
+[classification]
+tags = ["structure", "factory", "production"]
+
+[production]
+rally_point = true
+queue_limit = 10
+exit = { x = 0.0, y = -1.0, move_away = 120.0 }
+

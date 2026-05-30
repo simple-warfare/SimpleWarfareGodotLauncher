@@ -65,4 +65,4 @@ func _get_assets_root() -> String:
 
 
 func _get_official_content_package_root() -> String:
-	return ProjectSettings.globalize_path("user://assets/content_packages/official_base_game")
+	return ProjectSettings.globalize_path("user://assets/content_packages/simple_warfare_core_v0_1")

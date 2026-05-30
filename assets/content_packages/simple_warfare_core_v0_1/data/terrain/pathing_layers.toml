@@ -1,0 +1,15 @@
+[[pathing_layers]]
+id = "land"
+description = "需要实体地面的地面单位。"
+
+[[pathing_layers]]
+id = "hover"
+description = "可以跨越陆地和水域的悬浮单位。"
+
+[[pathing_layers]]
+id = "naval"
+description = "只能在水域移动的单位。"
+
+[[pathing_layers]]
+id = "air"
+description = "飞行单位。地形影响视野和放置，不影响移动。"

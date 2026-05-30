@@ -1,0 +1,4 @@
+id = "simple_warfare:effect.gameplay.slow_death"
+kind = "gameplay"
+description = "标记效果：用于死亡后应短暂停留再移除的单位。"
+duration_seconds = 1.5

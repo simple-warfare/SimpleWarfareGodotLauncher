@@ -367,7 +367,7 @@ func _add_tile_fill(parent: Node, map_size: Vector2, color: Color) -> void:
 func _load_tile_texture(relative_source: String) -> Texture2D:
 	var package_root := _content_package_root
 	if package_root.is_empty():
-		package_root = RustBackend.get_assets_root().path_join("content_packages/official_base_game")
+		package_root = RustBackend.get_assets_root().path_join("content_packages/simple_warfare_core_v0_1")
 	var source_path := package_root.path_join(relative_source)
 	if _tile_texture_cache.has(source_path):
 		return _tile_texture_cache[source_path]

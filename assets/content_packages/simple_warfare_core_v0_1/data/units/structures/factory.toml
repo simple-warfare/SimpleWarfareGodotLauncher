@@ -1,0 +1,39 @@
+id = "simple_warfare:unit.factory"
+templates = ["simple_warfare:template.factory"]
+
+[identity]
+display_name = "simple_warfare:loc.unit.factory"
+faction = "simple_warfare:faction.human"
+
+[classification]
+tech_level = 1
+
+[body]
+radius = 35.0
+display_radius = 30.0
+mass = 9000.0
+footprint = "simple_warfare:footprint.small_building"
+placement_footprint = "simple_warfare:footprint.factory_placement"
+
+[health]
+max = 1800
+armor_tags = ["structure"]
+
+[vision]
+radius = 180.0
+reveals_fog = true
+
+[economy]
+cost = { "simple_warfare:resource.credits" = 1000 }
+build_time_seconds = 16.7
+
+[production]
+build_menu = [
+  { action = "simple_warfare:action.produce_tank", position = 1.0 },
+  { action = "simple_warfare:action.factory_t2", position = 2.0 },
+]
+
+[render]
+body = "simple_warfare:texture.unit.factory.body"
+selection_radius = 35.0
+

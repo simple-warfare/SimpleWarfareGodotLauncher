@@ -4,6 +4,7 @@ const BOOTSTRAP_SCENE := "res://scenes/bootstrap.tscn"
 const MAIN_MENU_SCENE := "res://scenes/main_menu.tscn"
 const ROOM_SCENE := "res://scenes/room.tscn"
 const GAME_SCENE := "res://scenes/game.tscn"
+const MODS_SCENE := "res://scenes/mods.tscn"
 
 
 func go_to_bootstrap() -> void:
@@ -20,6 +21,10 @@ func go_to_room() -> void:
 
 func go_to_game() -> void:
 	_change_scene(GAME_SCENE)
+
+
+func go_to_mods() -> void:
+	_change_scene(MODS_SCENE)
 
 
 func _change_scene(scene_path: String) -> void:

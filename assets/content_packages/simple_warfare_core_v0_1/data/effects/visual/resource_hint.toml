@@ -1,0 +1,8 @@
+id = "simple_warfare:effect.resource_hint"
+kind = "visual"
+priority = "low"
+life_seconds = 1.0
+texture = "simple_warfare:texture.terrain.grass"
+scale = { from = 0.7, to = 0.9 }
+alpha = 0.35
+loop = true

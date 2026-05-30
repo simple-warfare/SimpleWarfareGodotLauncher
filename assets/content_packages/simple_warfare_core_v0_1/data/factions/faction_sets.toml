@@ -1,0 +1,4 @@
+[[sets]]
+id = "simple_warfare:faction_set.default"
+factions = ["simple_warfare:faction.human"]
+

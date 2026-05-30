@@ -1,0 +1,33 @@
+[[terrain_types]]
+id = "simple_warfare:terrain.grass"
+code = "G"
+display_name = "simple_warfare:loc.terrain.grass"
+default_texture = "simple_warfare:texture.terrain.grass"
+passable = { land = true, hover = true, naval = false, air = true }
+move_cost = { land = 1.0, hover = 1.0, naval = 0.0, air = 1.0 }
+
+[[terrain_types]]
+id = "simple_warfare:terrain.road"
+code = "R"
+display_name = "simple_warfare:loc.terrain.road"
+default_texture = "simple_warfare:texture.terrain.road"
+passable = { land = true, hover = true, naval = false, air = true }
+move_cost = { land = 0.8, hover = 0.9, naval = 0.0, air = 1.0 }
+
+[[terrain_types]]
+id = "simple_warfare:terrain.water"
+code = "W"
+display_name = "simple_warfare:loc.terrain.water"
+default_texture = "simple_warfare:texture.terrain.water"
+passable = { land = false, hover = true, naval = true, air = true }
+move_cost = { land = 0.0, hover = 1.1, naval = 1.0, air = 1.0 }
+
+[[terrain_types]]
+id = "simple_warfare:terrain.ore"
+code = "O"
+display_name = "simple_warfare:loc.terrain.ore"
+default_texture = "simple_warfare:texture.terrain.grass"
+passable = { land = true, hover = true, naval = false, air = true }
+move_cost = { land = 1.1, hover = 1.1, naval = 0.0, air = 1.0 }
+resource_hint = "simple_warfare:resource.credits"
+

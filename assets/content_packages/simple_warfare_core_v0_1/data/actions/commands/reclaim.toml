@@ -1,0 +1,19 @@
+id = "simple_warfare:action.reclaim"
+display_name = "simple_warfare:loc.action.reclaim"
+kind = "targeted_command"
+
+[requirements]
+all = [
+  { type = "caster_role", role = "reclaim" },
+  { type = "target_reclaimable" },
+]
+
+[timing]
+duration_seconds = 0.0
+queue = "command"
+interruptible = true
+
+[[effects]]
+type = "begin_reclaim"
+range = 95.0
+

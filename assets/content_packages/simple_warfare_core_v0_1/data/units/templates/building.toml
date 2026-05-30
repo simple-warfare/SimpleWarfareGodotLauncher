@@ -1,0 +1,17 @@
+id = "simple_warfare:template.building"
+
+[classification]
+domain = "structure"
+tags = ["structure"]
+is_building = true
+is_bio = false
+
+[movement]
+profile = "simple_warfare:movement.structure"
+
+[body]
+collision = "building"
+
+[render]
+shadow = "none"
+

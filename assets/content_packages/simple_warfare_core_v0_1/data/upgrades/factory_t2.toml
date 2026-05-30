@@ -1,0 +1,14 @@
+id = "simple_warfare:upgrade.factory_t2"
+display_name = "simple_warfare:loc.upgrade.factory_t2"
+applies_to = "simple_warfare:unit.factory"
+
+[modifiers]
+health_max_add = 600
+vision_radius_add = 40.0
+production_queue_limit_add = 5
+
+[unlock]
+actions = [
+  "simple_warfare:action.produce_tank",
+]
+

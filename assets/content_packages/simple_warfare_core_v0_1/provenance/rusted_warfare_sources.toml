@@ -1,0 +1,17 @@
+[[sources]]
+id = "rusted_warfare:tank"
+source_package = "rustedwarfare_official"
+source_path = "units/tanks/tank.ini"
+used_for = ["移动数值尺度", "基础战斗定位", "炮塔/弹丸分离"]
+
+[[sources]]
+id = "rusted_warfare:mech_factory"
+source_package = "rustedwarfare_official"
+source_path = "units/mech_factory/mechFactory.ini"
+used_for = ["工厂出口", "生产队列", "升级 action"]
+
+[[sources]]
+id = "rusted_warfare:tiled_maps"
+source_package = "rustedwarfare_official"
+source_path = "maps/skirmish/*.tmx"
+used_for = ["地块属性", "单位出生层", "资源池对象", "触发器对象组"]

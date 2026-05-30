@@ -1,0 +1,3 @@
+[[changes]]
+schema_version = 1
+summary = "初始创作目标：地图目录、单位模板、action，以及 terrain.toml 内的逻辑地形/视觉地形/寻路分层。"

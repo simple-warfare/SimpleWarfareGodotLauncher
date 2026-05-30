@@ -1,0 +1,11 @@
+id = "simple_warfare:ability.deploy"
+display_name = "simple_warfare:loc.ability.deploy"
+kind = "mode_switch"
+
+[states]
+from = "mobile"
+to = "deployed"
+
+[timing]
+duration_seconds = 1.0
+

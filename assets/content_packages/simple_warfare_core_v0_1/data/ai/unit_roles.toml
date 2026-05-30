@@ -1,0 +1,15 @@
+[[roles]]
+id = "assault"
+combat_weight = 1.0
+economy_weight = 0.0
+
+[[roles]]
+id = "builder"
+combat_weight = 0.2
+economy_weight = 0.8
+
+[[roles]]
+id = "factory"
+combat_weight = 0.0
+economy_weight = 1.0
+

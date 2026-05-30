@@ -1,0 +1,12 @@
+[[priorities]]
+unit = "simple_warfare:unit.factory"
+base_priority = 0.03
+none_in_base_extra = 0.04
+max_each_base = 1
+max_global = 5
+
+[[priorities]]
+unit = "simple_warfare:unit.extractor"
+base_priority = 0.25
+resource_node_required = true
+

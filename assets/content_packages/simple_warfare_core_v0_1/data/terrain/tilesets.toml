@@ -1,0 +1,52 @@
+[[tilesets]]
+id = "simple_warfare:tileset.basic"
+tile_width = 20
+tile_height = 20
+terrain_types = [
+  "simple_warfare:terrain.grass",
+  "simple_warfare:terrain.road",
+  "simple_warfare:terrain.water",
+  "simple_warfare:terrain.ore",
+]
+
+[[tilesets.tiles]]
+id = "simple_warfare:tile.grass.center"
+terrain = "simple_warfare:terrain.grass"
+texture = "simple_warfare:texture.terrain.grass"
+usage = "terrain_visual_tile"
+
+[[tilesets.tiles]]
+id = "simple_warfare:tile.road.center"
+terrain = "simple_warfare:terrain.road"
+texture = "simple_warfare:texture.terrain.road"
+usage = "terrain_visual_tile"
+
+[[tilesets.tiles]]
+id = "simple_warfare:tile.road.edge"
+terrain = "simple_warfare:terrain.road"
+texture = "simple_warfare:texture.terrain.road"
+usage = "terrain_visual_tile"
+
+[[tilesets.tiles]]
+id = "simple_warfare:tile.water.center"
+terrain = "simple_warfare:terrain.water"
+texture = "simple_warfare:texture.terrain.water"
+usage = "terrain_visual_tile"
+
+[[tilesets.tiles]]
+id = "simple_warfare:tile.water.edge"
+terrain = "simple_warfare:terrain.water"
+texture = "simple_warfare:texture.terrain.water"
+usage = "terrain_visual_tile"
+
+[[tilesets.tiles]]
+id = "simple_warfare:tile.ore.center"
+terrain = "simple_warfare:terrain.ore"
+texture = "simple_warfare:texture.terrain.grass"
+usage = "terrain_visual_tile"
+
+[[tilesets.tiles]]
+id = "simple_warfare:tile.ore.edge"
+terrain = "simple_warfare:terrain.ore"
+texture = "simple_warfare:texture.terrain.grass"
+usage = "terrain_visual_tile"

@@ -1,0 +1,7 @@
+[[objects]]
+id = "center_marker"
+kind = "decorative"
+x = 480.0
+y = 320.0
+visible = false
+

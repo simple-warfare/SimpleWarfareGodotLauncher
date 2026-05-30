@@ -1,0 +1,14 @@
+id = "simple_warfare:faction.human"
+display_name = "simple_warfare:loc.faction.human"
+playable = true
+
+[style]
+primary_color = "#3ca370"
+secondary_color = "#d64933"
+
+[starting_units]
+skirmish = [
+  "simple_warfare:unit.factory",
+  "simple_warfare:unit.engineer",
+]
+

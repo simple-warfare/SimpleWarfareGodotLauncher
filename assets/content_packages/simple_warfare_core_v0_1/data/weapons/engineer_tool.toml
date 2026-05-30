@@ -1,0 +1,19 @@
+id = "simple_warfare:weapon.engineer_tool"
+display_name = "simple_warfare:loc.weapon.engineer_tool"
+
+[targeting]
+allowed_layers = ["ground", "structure"]
+range = 95.0
+requires_line_of_sight = true
+
+[cooldown]
+seconds = 0.25
+
+[[turrets]]
+id = "nano"
+mount = { x = 0.0, y = 0.0 }
+hidden = true
+
+[fire]
+projectile = "simple_warfare:projectile.nano_beam"
+

@@ -1,0 +1,82 @@
+resources = [
+  "data/resources/credits.toml",
+  "data/resources/energy.toml",
+]
+
+factions = [
+  "data/factions/human.toml",
+  "data/factions/faction_sets.toml",
+]
+
+terrain = [
+  "data/terrain/terrain_types.toml",
+  "data/terrain/tilesets.toml",
+  "data/terrain/pathing_layers.toml",
+]
+
+movement = [
+  "data/movement/land_tracked.toml",
+  "data/movement/structure.toml",
+  "data/movement/air.toml",
+]
+
+collision = [
+  "data/collision/collision_layers.toml",
+  "data/collision/footprints.toml",
+]
+
+unit_templates = [
+  "data/units/templates/ground_vehicle.toml",
+  "data/units/templates/building.toml",
+  "data/units/templates/factory.toml",
+  "data/units/templates/turreted_unit.toml",
+]
+
+units = [
+  "data/units/land/tank.toml",
+  "data/units/land/engineer.toml",
+  "data/units/structures/factory.toml",
+  "data/units/structures/extractor.toml",
+  "data/units/structures/turret.toml",
+  "data/units/air/helicopter.toml",
+]
+
+weapons = [
+  "data/weapons/tank_cannon.toml",
+  "data/weapons/turret_cannon.toml",
+  "data/weapons/engineer_tool.toml",
+]
+
+projectiles = [
+  "data/projectiles/tank_shell.toml",
+  "data/projectiles/nano_beam.toml",
+]
+
+upgrades = [
+  "data/upgrades/factory_t2.toml",
+]
+
+actions = [
+  "data/actions/production/produce_tank.toml",
+  "data/actions/construction/build_factory.toml",
+  "data/actions/construction/build_extractor.toml",
+  "data/actions/upgrades/factory_t2.toml",
+  "data/actions/commands/repair.toml",
+  "data/actions/commands/reclaim.toml",
+]
+
+abilities = [
+  "data/abilities/deploy.toml",
+]
+
+effects = [
+  "data/effects/visual/explosion_small.toml",
+  "data/effects/visual/resource_hint.toml",
+  "data/effects/audio/cannon_fire.toml",
+  "data/effects/gameplay/slow_death.toml",
+]
+
+ai = [
+  "data/ai/unit_roles.toml",
+  "data/ai/build_priorities.toml",
+]

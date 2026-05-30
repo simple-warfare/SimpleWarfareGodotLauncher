@@ -1,0 +1,42 @@
+[[initial_units]]
+unit = "simple_warfare:unit.factory"
+team = 0
+x = 160.0
+y = 260.0
+facing_degrees = 0.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.engineer"
+team = 0
+x = 160.0
+y = 360.0
+facing_degrees = 0.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.tank"
+team = 0
+x = 240.0
+y = 320.0
+facing_degrees = 0.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.factory"
+team = 1
+x = 800.0
+y = 380.0
+facing_degrees = 180.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.engineer"
+team = 1
+x = 800.0
+y = 280.0
+facing_degrees = 180.0
+
+[[initial_units]]
+unit = "simple_warfare:unit.tank"
+team = 1
+x = 720.0
+y = 320.0
+facing_degrees = 180.0
+

@@ -1,0 +1,10 @@
+id = "simple_warfare:movement.air_light"
+kind = "air"
+pathing_layer = "air"
+max_speed = 180.0
+acceleration = 240.0
+deceleration = 320.0
+turn_rate_degrees_per_second = 360.0
+target_height = 20.0
+sliding = true
+

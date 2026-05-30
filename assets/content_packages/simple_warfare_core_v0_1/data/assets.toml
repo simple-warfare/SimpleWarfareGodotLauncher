@@ -1,0 +1,53 @@
+[[assets]]
+id = "simple_warfare:texture.unit.tank.body"
+kind = "image"
+path = "assets/textures/units/tank_body.png"
+usage = "unit_body"
+
+[[assets]]
+id = "simple_warfare:texture.unit.factory.body"
+kind = "image"
+path = "assets/textures/units/factory_body.png"
+usage = "unit_body"
+
+[[assets]]
+id = "simple_warfare:texture.projectile.tank_shell"
+kind = "image"
+path = "assets/textures/projectiles/tank_shell.png"
+usage = "projectile"
+
+[[assets]]
+id = "simple_warfare:texture.effect.explosion_small"
+kind = "image"
+path = "assets/textures/effects/explosion_small.png"
+usage = "effect"
+
+[[assets]]
+id = "simple_warfare:texture.ui.produce_tank"
+kind = "image"
+path = "assets/textures/ui/produce_tank.png"
+usage = "ui_icon"
+
+[[assets]]
+id = "simple_warfare:texture.terrain.grass"
+kind = "image"
+path = "assets/textures/terrain/grass.png"
+usage = "terrain_tile"
+
+[[assets]]
+id = "simple_warfare:texture.terrain.road"
+kind = "image"
+path = "assets/textures/terrain/road.png"
+usage = "terrain_tile"
+
+[[assets]]
+id = "simple_warfare:texture.terrain.water"
+kind = "image"
+path = "assets/textures/terrain/water.png"
+usage = "terrain_tile"
+
+[[assets]]
+id = "simple_warfare:audio.sfx.cannon_fire"
+kind = "audio"
+path = "assets/audio/sfx/cannon_fire.wav"
+usage = "sfx"

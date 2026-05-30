@@ -1,0 +1,13 @@
+id = "simple_warfare:resource.credits"
+display_name = "simple_warfare:loc.resource.credits"
+scope = "team"
+storage = "integer"
+default_amount = 0
+min_amount = 0
+max_amount = 999999
+visible = true
+
+[validation]
+allow_negative_delta = true
+allow_negative_balance = false
+

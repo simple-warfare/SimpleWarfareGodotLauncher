@@ -1,0 +1,16 @@
+id = "simple_warfare:projectile.tank_shell"
+kind = "direct"
+sprite = "simple_warfare:texture.projectile.tank_shell"
+speed = 300.0
+lifetime_seconds = 1.0
+deflection_power = 1.0
+
+[damage]
+direct = 25
+area = 0
+area_radius = 0.0
+types = ["kinetic"]
+
+[impact]
+visual_effect = "simple_warfare:effect.explosion_small"
+

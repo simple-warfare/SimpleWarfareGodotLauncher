@@ -177,7 +177,7 @@ func get_frontend_snapshot() -> Dictionary:
 
 
 func initialize_with_assets_path(assets_path: String) -> Dictionary:
-	return initialize_with_paths(assets_path, assets_path.path_join("content_packages/official_base_game"))
+	return initialize_with_paths(assets_path, assets_path.path_join("content_packages/simple_warfare_core_v0_1"))
 
 
 func initialize_with_paths(assets_path: String, content_package_path: String) -> Dictionary:

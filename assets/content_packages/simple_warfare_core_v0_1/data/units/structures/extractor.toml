@@ -1,0 +1,34 @@
+id = "simple_warfare:unit.extractor"
+templates = ["simple_warfare:template.building"]
+
+[identity]
+display_name = "simple_warfare:loc.unit.extractor"
+faction = "simple_warfare:faction.human"
+
+[classification]
+roles = ["economy", "resource_generator"]
+tech_level = 1
+
+[body]
+radius = 25.0
+display_radius = 25.0
+mass = 9000.0
+requires_resource_node = true
+
+[health]
+max = 800
+armor_tags = ["structure"]
+
+[vision]
+radius = 160.0
+reveals_fog = true
+
+[economy]
+cost = { "simple_warfare:resource.credits" = 700 }
+build_time_seconds = 16.7
+income_per_second = { "simple_warfare:resource.credits" = 8.0 }
+
+[render]
+body = "simple_warfare:texture.unit.factory.body"
+selection_radius = 25.0
+

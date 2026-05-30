@@ -1,0 +1,5 @@
+[[triggers]]
+id = "map_info"
+type = "skirmish"
+enabled = true
+

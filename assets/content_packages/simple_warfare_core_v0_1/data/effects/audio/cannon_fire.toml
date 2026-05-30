@@ -1,0 +1,5 @@
+id = "simple_warfare:effect.audio.cannon_fire"
+kind = "audio"
+sound = "simple_warfare:audio.sfx.cannon_fire"
+volume = 0.3
+

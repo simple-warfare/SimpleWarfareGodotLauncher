@@ -131,7 +131,7 @@ func _join_remote_game() -> void:
 
 
 func _open_mods() -> void:
-	_show_not_implemented("Mods scene will be migrated after SceneRouter/AppState are stable.")
+	SceneRouter.go_to_mods()
 
 
 func _open_settings() -> void:

@@ -1,0 +1,7 @@
+[[maps]]
+id = "simple_warfare:map.duel_fields"
+path = "maps/duel_fields"
+kind = "skirmish"
+recommended_players = 2
+preview = "maps/duel_fields/preview.png"
+
