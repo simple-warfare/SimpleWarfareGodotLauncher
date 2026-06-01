@@ -1,0 +1,47 @@
+id = "simple_warfare:unit.helicopter"
+templates = ["simple_warfare:template.turreted_unit"]
+
+[identity]
+display_name = "simple_warfare:loc.unit.helicopter"
+faction = "simple_warfare:faction.human"
+
+[classification]
+domain = "air"
+tags = ["air", "vehicle"]
+roles = ["raider"]
+tech_level = 1
+is_building = false
+is_bio = false
+
+[body]
+radius = 15.0
+display_radius = 9.0
+mass = 3000.0
+collision = "air_unit"
+
+[movement]
+profile = "simple_warfare:movement.air_light"
+
+[health]
+max = 150
+armor_tags = ["aircraft"]
+
+[vision]
+radius = 240.0
+reveals_fog = true
+
+[economy]
+cost = { "simple_warfare:resource.credits" = 700 }
+build_time_seconds = 13.9
+
+[combat]
+weapons = ["simple_warfare:weapon.tank_cannon"]
+
+[render]
+body = "simple_warfare:texture.unit.tank.body"
+attachments = [
+  { id = "rotor", sprite = "simple_warfare:texture.unit.tank.body", mount = { x = 0.0, y = 0.0 }, spin_rate_degrees_per_second = 1800.0 },
+]
+shadow = "auto"
+selection_radius = 15.0
+

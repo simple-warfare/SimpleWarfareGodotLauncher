@@ -1,0 +1,22 @@
+id = "simple_warfare:weapon.tank_cannon"
+display_name = "simple_warfare:loc.weapon.tank_cannon"
+
+[targeting]
+allowed_layers = ["ground"]
+excluded_layers = ["air", "underwater"]
+range = 130.0
+requires_line_of_sight = true
+
+[cooldown]
+seconds = 1.25
+
+[[turrets]]
+id = "main"
+mount = { x = 0.0, y = 0.0 }
+turn_rate_degrees_per_second = 240.0
+recoil = { offset = -2.0 }
+
+[fire]
+projectile = "simple_warfare:projectile.tank_shell"
+sound = "simple_warfare:audio.sfx.cannon_fire"
+

@@ -1,0 +1,14 @@
+[[teams]]
+id = 0
+name = "Blue"
+faction = "simple_warfare:faction.human"
+ally_group = 0
+starting_resources = { "simple_warfare:resource.credits" = 4000 }
+
+[[teams]]
+id = 1
+name = "Red"
+faction = "simple_warfare:faction.human"
+ally_group = 1
+starting_resources = { "simple_warfare:resource.credits" = 4000 }
+

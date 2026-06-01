@@ -1,0 +1,8 @@
+[[footprints]]
+id = "simple_warfare:footprint.small_building"
+tiles = { left = -1, top = -1, right = 1, bottom = 1 }
+
+[[footprints]]
+id = "simple_warfare:footprint.factory_placement"
+tiles = { left = -1, top = -1, right = 1, bottom = 3 }
+

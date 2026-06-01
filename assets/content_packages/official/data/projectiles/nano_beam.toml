@@ -1,0 +1,14 @@
+id = "simple_warfare:projectile.nano_beam"
+kind = "beam"
+speed = 9999.0
+lifetime_seconds = 0.2
+deflection_power = -1.0
+
+[damage]
+direct = 0
+types = ["utility"]
+
+[utility]
+repair_per_second = 60.0
+build_power = 1.0
+

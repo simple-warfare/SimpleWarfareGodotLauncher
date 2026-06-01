@@ -1,0 +1,18 @@
+[[resource_nodes]]
+id = "west_credits"
+resource = "simple_warfare:resource.credits"
+x = 120.0
+y = 320.0
+amount = 6000
+radius = 30.0
+claim_mode = "build_extractor"
+
+[[resource_nodes]]
+id = "east_credits"
+resource = "simple_warfare:resource.credits"
+x = 840.0
+y = 320.0
+amount = 6000
+radius = 30.0
+claim_mode = "build_extractor"
+

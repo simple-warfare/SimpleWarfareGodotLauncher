@@ -1,0 +1,19 @@
+id = "simple_warfare:action.repair"
+display_name = "simple_warfare:loc.action.repair"
+kind = "targeted_command"
+
+[requirements]
+all = [
+  { type = "caster_role", role = "repair" },
+  { type = "target_damaged" },
+]
+
+[timing]
+duration_seconds = 0.0
+queue = "command"
+interruptible = true
+
+[[effects]]
+type = "begin_repair"
+range = 95.0
+

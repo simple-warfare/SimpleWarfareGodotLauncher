@@ -1,0 +1,9 @@
+id = "simple_warfare:template.turreted_unit"
+
+[combat]
+aiming_model = "turret"
+turret_multi_targeting = false
+
+[render]
+turret_layer = "over_body"
+

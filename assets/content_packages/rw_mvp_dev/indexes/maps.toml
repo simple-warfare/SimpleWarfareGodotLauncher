@@ -1,5 +1,0 @@
-files = [
-  "maps/duel_fields.toml",
-]
-
-default = "rw_mvp:duel_fields"

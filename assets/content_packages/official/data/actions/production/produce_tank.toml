@@ -1,0 +1,24 @@
+id = "simple_warfare:action.produce_tank"
+display_name = "simple_warfare:loc.action.produce_tank"
+kind = "produce_unit"
+icon = "simple_warfare:texture.ui.produce_tank"
+
+[requirements]
+all = [
+  { type = "caster_has_tag", tag = "factory" },
+  { type = "team_resource_at_least", resource = "simple_warfare:resource.credits", amount = 350 },
+]
+
+[cost]
+team = { "simple_warfare:resource.credits" = 350 }
+
+[timing]
+duration_seconds = 8.3
+queue = "production"
+interruptible = true
+
+[[effects]]
+type = "spawn_unit"
+unit = "simple_warfare:unit.tank"
+spawn = { mode = "factory_exit", fallback_offset = { x = 36.0, y = -96.0 } }
+

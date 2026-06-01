@@ -1,0 +1,51 @@
+id = "simple_warfare:unit.engineer"
+templates = ["simple_warfare:template.ground_vehicle"]
+
+[identity]
+display_name = "simple_warfare:loc.unit.engineer"
+faction = "simple_warfare:faction.human"
+
+[classification]
+roles = ["builder", "repair", "reclaim"]
+tech_level = 1
+
+[body]
+radius = 17.0
+display_radius = 18.0
+mass = 4000.0
+
+[health]
+max = 1000
+armor_tags = ["vehicle"]
+self_regen_per_second = 6.0
+
+[vision]
+radius = 220.0
+reveals_fog = true
+
+[economy]
+cost = { "simple_warfare:resource.credits" = 3500 }
+build_time_seconds = 33.3
+income_per_second = { "simple_warfare:resource.credits" = 1.5 }
+
+[construction]
+range = 95.0
+speed_multiplier = 2.0
+options = [
+  "simple_warfare:action.build_factory",
+  "simple_warfare:action.build_extractor",
+]
+
+[combat]
+weapons = ["simple_warfare:weapon.engineer_tool"]
+
+[render]
+body = "simple_warfare:texture.unit.tank.body"
+selection_radius = 18.0
+
+[actions]
+available = [
+  "simple_warfare:action.repair",
+  "simple_warfare:action.reclaim",
+]
+

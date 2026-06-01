@@ -1,0 +1,10 @@
+id = "simple_warfare:movement.land_tracked"
+kind = "land"
+pathing_layer = "land"
+max_speed = 110.0
+acceleration = 300.0
+deceleration = 500.0
+turn_rate_degrees_per_second = 180.0
+can_reverse = false
+sliding = false
+

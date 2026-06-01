@@ -1,0 +1,12 @@
+id = "simple_warfare:resource.energy"
+display_name = "simple_warfare:loc.resource.energy"
+scope = "unit"
+storage = "float"
+default_amount = 0.0
+min_amount = 0.0
+visible = false
+
+[validation]
+allow_negative_delta = true
+allow_negative_balance = false
+

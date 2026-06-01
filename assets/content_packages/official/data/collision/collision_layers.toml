@@ -1,0 +1,12 @@
+[[collision_layers]]
+id = "ground_unit"
+blocks = ["ground_unit", "building"]
+
+[[collision_layers]]
+id = "building"
+blocks = ["ground_unit", "building"]
+
+[[collision_layers]]
+id = "air_unit"
+blocks = ["air_unit"]
+

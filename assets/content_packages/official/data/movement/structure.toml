@@ -1,0 +1,8 @@
+id = "simple_warfare:movement.structure"
+kind = "structure"
+pathing_layer = "land"
+max_speed = 0.0
+acceleration = 0.0
+deceleration = 0.0
+turn_rate_degrees_per_second = 0.0
+

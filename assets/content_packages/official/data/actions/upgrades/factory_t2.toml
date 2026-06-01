@@ -1,0 +1,22 @@
+id = "simple_warfare:action.factory_t2"
+display_name = "simple_warfare:loc.action.factory_t2"
+kind = "upgrade"
+
+[requirements]
+all = [
+  { type = "caster_unit", unit = "simple_warfare:unit.factory" },
+  { type = "team_resource_at_least", resource = "simple_warfare:resource.credits", amount = 4000 },
+]
+
+[cost]
+team = { "simple_warfare:resource.credits" = 4000 }
+
+[timing]
+duration_seconds = 25.0
+queue = "upgrade"
+interruptible = false
+
+[[effects]]
+type = "apply_unit_upgrade"
+upgrade = "simple_warfare:upgrade.factory_t2"
+

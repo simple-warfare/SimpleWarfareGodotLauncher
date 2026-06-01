@@ -1,0 +1,59 @@
+id = "simple_warfare:schema.core_pack"
+version = 1
+status = "authoring_target"
+
+[ids]
+format = "namespace:domain.name"
+namespace = "simple_warfare"
+case = "snake_case"
+
+[authoring]
+source_maps = "maps/<map_id>/source"
+normalized_maps = "maps/<map_id>/*.toml"
+templates = "data/units/templates/*.toml"
+
+[normalization]
+expand_templates = true
+resolve_package_local_paths = true
+reject_unknown_references = true
+runtime_output = "complete_definitions"
+
+[maps]
+directory_per_map = true
+required_files = ["map.toml", "terrain.toml", "teams.toml", "spawns.toml"]
+optional_files = ["objects.toml", "resources.toml", "triggers.toml", "preview.png"]
+terrain_logic_encoding = ["fixed_width_rows", "tiled_source"]
+terrain_visual_encoding = ["fixed_width_rows", "sparse_tiles", "tiled_source"]
+server_consumes = ["terrain.toml", "teams.toml", "spawns.toml", "resources.toml"]
+frontend_consumes = ["terrain.toml", "resources.toml"]
+
+[maps.terrain_layers]
+logic_is_authoritative = true
+visual_is_authored = true
+runtime_generates_visual_tiles = false
+map_editor_or_importer_generates_visual_tiles = true
+
+[units]
+directory_by_domain = true
+required_sections = [
+  "identity",
+  "classification",
+  "body",
+  "health",
+  "movement",
+  "vision",
+  "economy",
+  "render",
+]
+optional_sections = [
+  "combat",
+  "production",
+  "construction",
+  "actions",
+  "attachments",
+  "animation",
+]
+
+[actions]
+contract = "requirements + cost + timing + effects"
+effects_are_ordered = true

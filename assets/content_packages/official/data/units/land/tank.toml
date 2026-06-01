@@ -1,0 +1,41 @@
+id = "simple_warfare:unit.tank"
+templates = [
+  "simple_warfare:template.ground_vehicle",
+  "simple_warfare:template.turreted_unit",
+]
+
+[identity]
+display_name = "simple_warfare:loc.unit.tank"
+faction = "simple_warfare:faction.human"
+
+[classification]
+roles = ["assault", "armored"]
+tech_level = 1
+
+[body]
+radius = 11.0
+display_radius = 11.0
+mass = 3000.0
+
+[health]
+max = 210
+armor_tags = ["vehicle"]
+
+[vision]
+radius = 190.0
+reveals_fog = true
+
+[economy]
+cost = { "simple_warfare:resource.credits" = 350 }
+build_time_seconds = 8.3
+
+[combat]
+weapons = ["simple_warfare:weapon.tank_cannon"]
+
+[render]
+body = "simple_warfare:texture.unit.tank.body"
+selection_radius = 11.0
+
+[actions]
+available = []
+
