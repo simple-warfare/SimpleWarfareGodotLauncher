@@ -17,4 +17,3 @@ max_zoom = 2.5
 format = "tiled"
 path = "maps/duel_fields/source/duel_fields.tmx"
 required_for_runtime = false
-

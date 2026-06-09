@@ -34,6 +34,15 @@ weapons = ["simple_warfare:weapon.tank_cannon"]
 
 [render]
 body = "simple_warfare:texture.unit.tank.body"
+# Optional: source rect for sprite sheet slicing (pixels within the texture)
+# body_source = { x = 0, y = 0, width = 64, height = 64 }
+# Optional: frame animation from a sprite sheet
+# [render.animation]
+# frame_width = 64
+# frame_height = 64
+# frame_count = 8
+# frame_duration_seconds = 0.12
+# frames_per_row = 4
 selection_radius = 11.0
 
 [actions]
