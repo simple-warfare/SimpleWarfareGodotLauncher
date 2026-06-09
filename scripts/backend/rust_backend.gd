@@ -165,15 +165,15 @@ func _format_diagnostics_snapshot(diagnostics: Dictionary, limit: int, min_level
 	return "\n".join(lines)
 
 
-func get_frontend_snapshot() -> Dictionary:
+func get_frontend_frame() -> Dictionary:
 	if !_available:
-		return _empty_frontend_snapshot("unavailable")
+		return _empty_frontend_frame("unavailable")
 
-	var snapshot = _rusty_core.call("get_frontend_snapshot")
-	if typeof(snapshot) != TYPE_DICTIONARY:
-		return _empty_frontend_snapshot("invalid_snapshot")
+	var frame = _rusty_core.call("get_frontend_frame")
+	if typeof(frame) != TYPE_DICTIONARY:
+		return _empty_frontend_frame("invalid_frame")
 
-	return snapshot
+	return frame
 
 
 func initialize_with_assets_path(assets_path: String) -> Dictionary:
@@ -220,8 +220,8 @@ func start_client(server_addr: String) -> Dictionary:
 		state_changed.emit()
 		return result
 
-	# Rust runtime 会启动 UDP client；菜单层负责等待首个 server snapshot 后进入游戏场景。
 	var result := _store_runtime_result(_rusty_core.call("start_client", server_addr))
+
 	state_changed.emit()
 	return result
 
@@ -349,7 +349,7 @@ func _store_runtime_result(result_value: Variant) -> Dictionary:
 	return result
 
 
-func _empty_frontend_snapshot(status: String) -> Dictionary:
+func _empty_frontend_frame(status: String) -> Dictionary:
 	return {
 		"mode": "none",
 		"status": status,

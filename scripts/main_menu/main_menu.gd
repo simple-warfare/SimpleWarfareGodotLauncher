@@ -38,8 +38,8 @@ func _process(delta: float) -> void:
 func _refresh_status() -> void:
 	var rust_state := "ready" if AppState.rust_ready else "unavailable"
 	var assets_state := "ready" if AppState.assets_ready else "unavailable"
-	var snapshot := RustBackend.get_frontend_snapshot()
-	var units: Array = snapshot.get("units", [])
+	var frame := RustBackend.get_frontend_frame()
+	var units := FrontendFrame.units(frame)
 	var first_unit_text := "none"
 
 	if !units.is_empty() && typeof(units[0]) == TYPE_DICTIONARY:
@@ -52,14 +52,14 @@ func _refresh_status() -> void:
 			first_unit.get("health", 0),
 		]
 
-	_status_value.text = "Rust: %s | Assets: %s | Mode: %s | Result: %s\nSnapshot: status=%s server_tick=%s client_tick=%s units=%s first=%s" % [
+	_status_value.text = "Rust: %s | Assets: %s | Mode: %s | Result: %s\nFrame: status=%s server_tick=%s client_tick=%s units=%s first=%s" % [
 		rust_state,
 		assets_state,
-		snapshot.get("mode", RustBackend.get_runtime_mode()),
+		FrontendFrame.mode(frame),
 		RustBackend.get_last_result(),
-		snapshot.get("status", "unknown"),
-		snapshot.get("server_tick", 0),
-		snapshot.get("client_tick", 0),
+		FrontendFrame.status(frame),
+		FrontendFrame.server_tick(frame),
+		FrontendFrame.client_tick(frame),
 		units.size(),
 		first_unit_text,
 	]

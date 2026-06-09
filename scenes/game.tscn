@@ -34,7 +34,7 @@ layout_mode = 2
 [node name="StatusValue" type="Label" parent="HudLayer/Hud/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Waiting for snapshot"
+text = "Waiting for frontend frame"
 
 [node name="CommandBar" type="HBoxContainer" parent="HudLayer/Hud/Content"]
 layout_mode = 2

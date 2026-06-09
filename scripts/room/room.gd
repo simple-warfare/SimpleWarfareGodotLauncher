@@ -1,6 +1,6 @@
 extends Control
 
-const SNAPSHOT_WARNING_SECONDS := 8.0
+const FRAME_WARNING_SECONDS := 8.0
 
 @onready var _title: Label = %Title
 @onready var _status_value: Label = %StatusValue
@@ -24,7 +24,7 @@ func _ready() -> void:
 	_start_button.pressed.connect(_start_game)
 	_diagnostics_button.pressed.connect(RustBackend.open_diagnostics_panel)
 	_leave_button.pressed.connect(_leave_room)
-	_refresh_from_snapshot()
+	_refresh_from_frame()
 
 
 func _process(delta: float) -> void:
@@ -34,19 +34,19 @@ func _process(delta: float) -> void:
 		if _start_requested:
 			_start_wait_seconds += delta
 
-	_refresh_from_snapshot()
+	_refresh_from_frame()
 
 
-func _refresh_from_snapshot() -> void:
-	var snapshot := RustBackend.get_frontend_snapshot()
-	var room := _snapshot_room(snapshot)
-	var network := _snapshot_network(snapshot)
-	var commands := _snapshot_commands(snapshot)
+func _refresh_from_frame() -> void:
+	var frame := RustBackend.get_frontend_frame()
+	var room := FrontendFrame.room(frame)
+	var network := FrontendFrame.network(frame)
+	var commands := FrontendFrame.commands(frame)
 	var slots := _room_slots(room)
 	var phase := _effective_room_phase(room, network)
 	var local_is_host := _local_is_host(slots)
-	var server_tick := int(snapshot.get("server_tick", 0))
-	var client_tick := int(snapshot.get("client_tick", 0))
+	var server_tick := FrontendFrame.server_tick(frame)
+	var client_tick := FrontendFrame.client_tick(frame)
 
 	_refresh_start_request_state(commands, phase)
 
@@ -57,7 +57,7 @@ func _refresh_from_snapshot() -> void:
 	_title.text = _mode_title()
 	_status_value.text = "phase=%s status=%s server_tick=%s client_tick=%s result=%s" % [
 		phase,
-		snapshot.get("status", "unknown"),
+		FrontendFrame.status(frame),
 		server_tick,
 		client_tick,
 		RustBackend.get_last_result(),
@@ -73,8 +73,8 @@ func _refresh_from_snapshot() -> void:
 
 	if AppState.launch_mode == AppState.LaunchMode.CLIENT && server_tick <= 0:
 		_status_value.text += "\nwaiting for server %s (%.1fs)" % [AppState.server_addr, _wait_seconds]
-		if _wait_seconds >= SNAPSHOT_WARNING_SECONDS:
-			_status_value.text += "\nno server snapshot yet"
+		if _wait_seconds >= FRAME_WARNING_SECONDS:
+			_status_value.text += "\nno server frame yet"
 
 	var local_player_key := str(room.get("local_player_key", ""))
 	if local_player_key.is_empty():
@@ -97,28 +97,6 @@ func _refresh_from_snapshot() -> void:
 	_refresh_slots(slots)
 
 
-func _snapshot_room(snapshot: Dictionary) -> Dictionary:
-	var room_value: Variant = snapshot.get("room", {})
-	if typeof(room_value) != TYPE_DICTIONARY:
-		return {}
-	var room: Dictionary = room_value
-	return room
-
-
-func _snapshot_network(snapshot: Dictionary) -> Dictionary:
-	var debug_value: Variant = snapshot.get("debug", {})
-	if typeof(debug_value) != TYPE_DICTIONARY:
-		return {}
-
-	var debug: Dictionary = debug_value
-	var network_value: Variant = debug.get("network", {})
-	if typeof(network_value) != TYPE_DICTIONARY:
-		return {}
-
-	var network: Dictionary = network_value
-	return network
-
-
 func _effective_room_phase(room: Dictionary, network: Dictionary) -> String:
 	var room_phase := str(room.get("phase", ""))
 	var network_phase := str(network.get("room_phase", ""))
@@ -129,20 +107,8 @@ func _effective_room_phase(room: Dictionary, network: Dictionary) -> String:
 	return room_phase
 
 
-func _snapshot_commands(snapshot: Dictionary) -> Dictionary:
-	var commands_value: Variant = snapshot.get("commands", {})
-	if typeof(commands_value) != TYPE_DICTIONARY:
-		return {}
-	var commands: Dictionary = commands_value
-	return commands
-
-
 func _room_slots(room: Dictionary) -> Array:
-	var slots_value: Variant = room.get("player_slots", [])
-	if typeof(slots_value) != TYPE_ARRAY:
-		return []
-	var slots: Array = slots_value
-	return slots
+	return FrontendFrame.array(room, "player_slots")
 
 
 func _local_is_host(slots: Array) -> bool:
@@ -361,7 +327,7 @@ func _refresh_start_request_state(commands: Dictionary, phase: String) -> void:
 		])
 		return
 
-	if _start_wait_seconds >= SNAPSHOT_WARNING_SECONDS:
+	if _start_wait_seconds >= FRAME_WARNING_SECONDS:
 		_start_status = "pending id=%s pending_count=%s %.1fs" % [
 			_start_command_id,
 			pending_count,
