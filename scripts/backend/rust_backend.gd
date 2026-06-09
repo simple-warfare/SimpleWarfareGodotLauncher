@@ -356,15 +356,44 @@ func _empty_frontend_frame(status: String) -> Dictionary:
 		"server_tick": 0,
 		"client_tick": 0,
 		"commands": {
-			"pending_count": 0,
-			"acknowledged_count": 0,
-			"last_acknowledged_command_id": 0,
-			"last_acknowledged_sequence": 0,
-			"last_applied_command_id": 0,
-			"last_applied_sequence": 0,
-			"last_result_status": "",
-			"last_rejected_reason": "",
-			"last_rejected_detail": "",
+			"queue": {
+				"pending_count": 0,
+				"oldest_pending": {},
+			},
+			"replay": {
+				"command_count": 0,
+				"from_server_tick": 0,
+				"base": {
+					"server_tick": 0,
+					"unit_count": 0,
+				},
+				"sequence_range": {},
+				"commands": [],
+			},
+			"prediction": {
+				"predicted_unit_count": 0,
+				"history_count": 0,
+				"latest_predicted": {},
+				"latest_history": {},
+				"history": [],
+			},
+			"reconciliation": {
+				"reconciled_count": 0,
+				"mismatch_count": 0,
+				"latest": {},
+			},
+			"acknowledgements": {
+				"acknowledged_count": 0,
+				"latest_acknowledged": {},
+				"latest_applied": {},
+				"latest_result_status": "",
+				"latest_rejection": {},
+			},
+			"replication": {
+				"lightyear_predicted_unit_count": 0,
+				"unit_count": 0,
+				"units": [],
+			},
 		},
 		"room": {
 			"phase": "lobby",

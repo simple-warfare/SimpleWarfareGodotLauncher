@@ -313,12 +313,16 @@ func _refresh_start_request_state(commands: Dictionary, phase: String) -> void:
 	if !_start_requested:
 		return
 
-	var pending_count := int(commands.get("pending_count", 0))
-	var last_acknowledged_command_id := int(commands.get("last_acknowledged_command_id", 0))
-	var last_result_status := str(commands.get("last_result_status", ""))
+	var queue := FrontendFrame.command_queue(commands)
+	var acknowledgements := FrontendFrame.command_acknowledgements(commands)
+	var latest_acknowledged := FrontendFrame.dictionary(acknowledgements, "latest_acknowledged")
+	var latest_rejection := FrontendFrame.dictionary(acknowledgements, "latest_rejection")
+	var pending_count := int(queue.get("pending_count", 0))
+	var last_acknowledged_command_id := int(latest_acknowledged.get("command_id", 0))
+	var last_result_status := str(acknowledgements.get("latest_result_status", ""))
 	if _start_command_id > 0 && last_acknowledged_command_id == _start_command_id && last_result_status == "rejected":
-		var rejected_reason := str(commands.get("last_rejected_reason", "unknown"))
-		var rejected_detail := str(commands.get("last_rejected_detail", ""))
+		var rejected_reason := str(latest_rejection.get("reason", "unknown"))
+		var rejected_detail := str(latest_rejection.get("detail", ""))
 		_start_requested = false
 		_start_status = "rejected: %s %s" % [rejected_reason, rejected_detail]
 		push_warning("Rust start_game command rejected asynchronously: %s %s" % [

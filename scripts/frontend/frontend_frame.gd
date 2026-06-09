@@ -38,6 +38,30 @@ static func commands(frame: Dictionary) -> Dictionary:
 	return dictionary(frame, "commands")
 
 
+static func command_queue(commands: Dictionary) -> Dictionary:
+	return dictionary(commands, "queue")
+
+
+static func command_replay(commands: Dictionary) -> Dictionary:
+	return dictionary(commands, "replay")
+
+
+static func command_prediction(commands: Dictionary) -> Dictionary:
+	return dictionary(commands, "prediction")
+
+
+static func command_reconciliation(commands: Dictionary) -> Dictionary:
+	return dictionary(commands, "reconciliation")
+
+
+static func command_acknowledgements(commands: Dictionary) -> Dictionary:
+	return dictionary(commands, "acknowledgements")
+
+
+static func command_replication(commands: Dictionary) -> Dictionary:
+	return dictionary(commands, "replication")
+
+
 static func debug(frame: Dictionary) -> Dictionary:
 	return dictionary(frame, "debug")
 

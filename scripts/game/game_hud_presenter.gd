@@ -186,13 +186,17 @@ func _production_command_summary(selection: GameSelectionState) -> String:
 
 
 func _command_lifecycle_summary(commands: Dictionary) -> String:
-	var result_status := str(commands.get("last_result_status", ""))
-	var rejected_reason := str(commands.get("last_rejected_reason", ""))
+	var queue := FrontendFrame.command_queue(commands)
+	var acknowledgements := FrontendFrame.command_acknowledgements(commands)
+	var latest_applied := FrontendFrame.dictionary(acknowledgements, "latest_applied")
+	var latest_rejection := FrontendFrame.dictionary(acknowledgements, "latest_rejection")
+	var result_status := str(acknowledgements.get("latest_result_status", ""))
+	var rejected_reason := str(latest_rejection.get("reason", ""))
 	var replay_summary := _replay_summary(commands)
 	if result_status == "rejected" && rejected_reason != "":
 		return "pending:%s ack:%s result:%s rejected:%s %s %s %s" % [
-			commands.get("pending_count", 0),
-			commands.get("acknowledged_count", 0),
+			queue.get("pending_count", 0),
+			acknowledgements.get("acknowledged_count", 0),
 			result_status,
 			rejected_reason,
 			replay_summary,
@@ -200,11 +204,11 @@ func _command_lifecycle_summary(commands: Dictionary) -> String:
 			_prediction_history_summary(commands),
 		]
 	return "pending:%s ack:%s result:%s applied:%s/%s %s %s %s" % [
-		commands.get("pending_count", 0),
-		commands.get("acknowledged_count", 0),
+		queue.get("pending_count", 0),
+		acknowledgements.get("acknowledged_count", 0),
 		result_status,
-		commands.get("last_applied_command_id", 0),
-		commands.get("last_applied_sequence", 0),
+		latest_applied.get("command_id", 0),
+		latest_applied.get("sequence", 0),
 		replay_summary,
 		_reconciliation_summary(commands),
 		_prediction_history_summary(commands),
@@ -212,27 +216,31 @@ func _command_lifecycle_summary(commands: Dictionary) -> String:
 
 
 func _replay_summary(commands: Dictionary) -> String:
-	var replay_count := int(commands.get("replay_command_count", 0))
+	var replay := FrontendFrame.command_replay(commands)
+	var replay_count := int(replay.get("command_count", 0))
 	if replay_count == 0:
 		return "replay:none"
 
+	var base := FrontendFrame.dictionary(replay, "base")
+	var sequence_range := FrontendFrame.dictionary(replay, "sequence_range")
 	return "replay:%s base:%s units:%s seq:%s-%s" % [
 		replay_count,
-		commands.get("replay_base_server_tick", 0),
-		commands.get("replay_base_unit_count", 0),
-		commands.get("replay_first_sequence", 0),
-		commands.get("replay_last_sequence", 0),
+		base.get("server_tick", 0),
+		base.get("unit_count", 0),
+		sequence_range.get("first", 0),
+		sequence_range.get("last", 0),
 	]
 
 
 func _lightyear_prediction_summary(commands: Dictionary) -> String:
-	var predicted_count := int(commands.get("lightyear_predicted_unit_count", 0))
-	var replicated_count := int(commands.get("replicated_unit_count", 0))
+	var replication := FrontendFrame.command_replication(commands)
+	var predicted_count := int(replication.get("lightyear_predicted_unit_count", 0))
+	var replicated_count := int(replication.get("unit_count", 0))
 	if replicated_count == 0:
 		return "ly:none"
 
 	var predicted_ids := PackedStringArray()
-	for unit_value in FrontendFrame.array(commands, "replicated_units"):
+	for unit_value in FrontendFrame.array(replication, "units"):
 		if typeof(unit_value) != TYPE_DICTIONARY:
 			continue
 		var unit: Dictionary = unit_value
@@ -245,19 +253,22 @@ func _lightyear_prediction_summary(commands: Dictionary) -> String:
 
 
 func _reconciliation_summary(commands: Dictionary) -> String:
-	var reconciled_count := int(commands.get("reconciled_command_count", 0))
-	var mismatch_count := int(commands.get("reconciliation_mismatch_count", 0))
-	var status := str(commands.get("last_reconciliation_status", ""))
+	var reconciliation := FrontendFrame.command_reconciliation(commands)
+	var latest := FrontendFrame.dictionary(reconciliation, "latest")
+	var latest_command := FrontendFrame.dictionary(latest, "command")
+	var reconciled_count := int(reconciliation.get("reconciled_count", 0))
+	var mismatch_count := int(reconciliation.get("mismatch_count", 0))
+	var status := str(latest.get("status", ""))
 	if reconciled_count == 0 && status.is_empty():
 		return "rec:none"
 
-	var command_id := int(commands.get("last_reconciled_command_id", 0))
-	var sequence := int(commands.get("last_reconciled_sequence", 0))
-	var round_trip_ticks := int(commands.get("last_reconciliation_round_trip_ticks", 0))
-	var target_error := float(commands.get("last_reconciliation_target_error", 0.0))
-	var position_error := float(commands.get("last_reconciliation_position_error", 0.0))
-	var correction := str(commands.get("last_reconciliation_correction", ""))
-	var error := str(commands.get("last_reconciliation_error", ""))
+	var command_id := int(latest_command.get("command_id", 0))
+	var sequence := int(latest_command.get("sequence", 0))
+	var round_trip_ticks := int(latest.get("round_trip_client_ticks", 0))
+	var target_error := float(latest.get("target_error", 0.0))
+	var position_error := float(latest.get("position_error", 0.0))
+	var correction := str(latest.get("correction", ""))
+	var error := str(latest.get("error", ""))
 	if !error.is_empty():
 		return "rec:%s/%s last:%s/%s status:%s rt:%s corr:%s pos_err:%.2f error:%s" % [
 			reconciled_count,
@@ -284,11 +295,12 @@ func _reconciliation_summary(commands: Dictionary) -> String:
 
 
 func _prediction_history_summary(commands: Dictionary) -> String:
-	var history_count := int(commands.get("prediction_history_count", 0))
+	var prediction := FrontendFrame.command_prediction(commands)
+	var history_count := int(prediction.get("history_count", 0))
 	if history_count == 0:
 		return "pred:none"
 
-	var history := FrontendFrame.array(commands, "prediction_history")
+	var history := FrontendFrame.array(prediction, "history")
 	if !history.is_empty():
 		var entries := PackedStringArray()
 		for entry_value in history:
@@ -305,19 +317,20 @@ func _prediction_history_summary(commands: Dictionary) -> String:
 		if !entries.is_empty():
 			return "pred:%s recent:%s" % [history_count, " | ".join(entries)]
 
-	var command_id := int(commands.get("last_prediction_command_id", 0))
-	var sequence := int(commands.get("last_prediction_sequence", 0))
-	var entity_id := int(commands.get("last_prediction_entity_id", 0))
+	var latest := FrontendFrame.dictionary(prediction, "latest_history")
+	var command_id := int(latest.get("command_id", 0))
+	var sequence := int(latest.get("sequence", 0))
+	var entity_id := int(latest.get("entity_id", 0))
 	var predicted := Vector2(
-		float(commands.get("last_prediction_x", 0.0)),
-		float(commands.get("last_prediction_y", 0.0))
+		float(latest.get("predicted_x", 0.0)),
+		float(latest.get("predicted_y", 0.0))
 	)
 	var authoritative := Vector2(
-		float(commands.get("last_prediction_authoritative_x", 0.0)),
-		float(commands.get("last_prediction_authoritative_y", 0.0))
+		float(latest.get("authoritative_x", 0.0)),
+		float(latest.get("authoritative_y", 0.0))
 	)
-	var position_error := float(commands.get("last_prediction_position_error", 0.0))
-	var correction := str(commands.get("last_prediction_correction", ""))
+	var position_error := float(latest.get("position_error", 0.0))
+	var correction := str(latest.get("correction", ""))
 	return "pred:%s last:%s/%s unit:%s p:(%.1f,%.1f) a:(%.1f,%.1f) err:%.2f corr:%s" % [
 		history_count,
 		command_id,
