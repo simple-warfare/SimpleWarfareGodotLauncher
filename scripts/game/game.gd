@@ -10,10 +10,13 @@ const MOVE_TARGET_Z := 80
 const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
 const MISSING_UNIT_GRACE_FRAMES := 6
+const SELECTION_DRAG_THRESHOLD := 6.0
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
+@onready var _hud_layer: CanvasLayer = $HudLayer
 @onready var _hud: Control = $HudLayer/Hud
+@onready var _debug_panel: Control = $HudLayer/DebugPanel
 @onready var _status_value: Label = %StatusValue
 @onready var _debug_value: Label = %DebugValue
 @onready var _stop_command_button: Button = %StopCommandButton
@@ -25,6 +28,11 @@ var _unit_snapshots: Dictionary = {}
 var _missing_unit_counts: Dictionary = {}
 var _move_target_markers: Dictionary = {}
 var _selected_unit_id := 0
+var _selected_unit_ids: Dictionary = {}
+var _selection_drag_candidate := false
+var _selection_dragging := false
+var _selection_drag_start := Vector2.ZERO
+var _selection_box: Panel
 var _map_bounds: Line2D
 var _tile_layer_root: Node2D
 var _object_layer_root: Node2D
@@ -40,9 +48,11 @@ var _camera_max_zoom := 2.0
 
 
 func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stop_command_button.pressed.connect(_issue_stop_command)
 	_produce_command_button.pressed.connect(_issue_produce_unit_command)
 	_diagnostics_button.pressed.connect(RustBackend.open_diagnostics_panel)
+	_create_selection_box()
 	_refresh_from_snapshot()
 
 
@@ -336,12 +346,12 @@ func _tile_has_texture(tile_definition: Dictionary) -> bool:
 		&& int(tile_definition.get("source_height", -1)) > 0
 
 
-func _add_tile(parent: Node, position: Vector2, tile_size: float, tile_definition: Dictionary) -> void:
+func _add_tile(parent: Node, tile_position: Vector2, tile_size: float, tile_definition: Dictionary) -> void:
 	if _tile_has_texture(tile_definition):
 		var texture := _load_tile_texture(str(tile_definition.get("source", "")))
 		if texture != null:
 			var sprite := Sprite2D.new()
-			sprite.position = position
+			sprite.position = tile_position
 			sprite.centered = false
 			sprite.texture = texture
 			sprite.region_enabled = true
@@ -357,7 +367,7 @@ func _add_tile(parent: Node, position: Vector2, tile_size: float, tile_definitio
 			parent.add_child(sprite)
 			return
 
-	_add_tile_rect(parent, position, tile_size, _tile_color(tile_definition, 0))
+	_add_tile_rect(parent, tile_position, tile_size, _tile_color(tile_definition, 0))
 
 
 func _add_tile_fill(parent: Node, map_size: Vector2, color: Color) -> void:
@@ -476,7 +486,7 @@ func _apply_unit_sprite_region(sprite: Sprite2D, sprite_definition: Dictionary, 
 	sprite.region_enabled = true
 	sprite.region_rect = Rect2(
 		float((frame_index % columns) * frame_width),
-		float(int(frame_index / columns) * frame_height),
+		float(int(float(frame_index) / float(columns)) * frame_height),
 		float(frame_width),
 		float(frame_height)
 	)
@@ -484,13 +494,13 @@ func _apply_unit_sprite_region(sprite: Sprite2D, sprite_definition: Dictionary, 
 
 
 func _scale_unit_sprite(sprite: Sprite2D, sprite_definition: Dictionary, diameter: float) -> void:
-	var size: Vector2 = _unit_sprite_display_size(sprite, sprite_definition)
-	var max_size: float = max(size.x, size.y)
+	var display_size: Vector2 = _unit_sprite_display_size(sprite, sprite_definition)
+	var max_size: float = max(display_size.x, display_size.y)
 	if max_size <= 0.0:
 		sprite.scale = Vector2.ONE
 		return
-	var scale: float = diameter / max_size
-	sprite.scale = Vector2(scale, scale)
+	var sprite_scale: float = diameter / max_size
+	sprite.scale = Vector2(sprite_scale, sprite_scale)
 
 
 func _unit_sprite_display_size(sprite: Sprite2D, sprite_definition: Dictionary) -> Vector2:
@@ -569,9 +579,9 @@ func _load_unit_texture(relative_source: String) -> Texture2D:
 	return texture
 
 
-func _add_tile_rect(parent: Node, position: Vector2, tile_size: float, color: Color) -> void:
+func _add_tile_rect(parent: Node, rect_position: Vector2, tile_size: float, color: Color) -> void:
 	var rect := ColorRect.new()
-	rect.position = position
+	rect.position = rect_position
 	rect.size = Vector2(tile_size, tile_size)
 	rect.color = color
 	parent.add_child(rect)
@@ -634,24 +644,97 @@ func _handle_camera_movement(delta: float) -> void:
 	_camera.position += normalized_direction * CAMERA_MOVE_SPEED * delta / _camera.zoom.x
 
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if !_camera_initialized:
 		return
-	if event is InputEventMouseButton && event.pressed:
-		if _is_over_hud(event.position):
+	if event is InputEventMouseMotion:
+		if _is_over_ui(event.position) && !_selection_dragging:
 			return
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		if _selection_drag_candidate || _selection_dragging:
+			_update_selection_drag(event.position)
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP && event.pressed:
+			if _is_over_ui(event.position):
+				return
 			_set_camera_zoom(_camera.zoom.x + CAMERA_ZOOM_STEP)
 			get_viewport().set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN && event.pressed:
+			if _is_over_ui(event.position):
+				return
 			_set_camera_zoom(_camera.zoom.x - CAMERA_ZOOM_STEP)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_LEFT:
-			_select_unit_at_screen_position(event.position)
+			if event.pressed:
+				if _is_over_ui(event.position):
+					return
+				_begin_selection_drag(event.position)
+			else:
+				_finish_selection_drag(event.position)
 			get_viewport().set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
+		elif event.button_index == MOUSE_BUTTON_RIGHT && event.pressed:
+			if _is_over_ui(event.position):
+				return
 			_issue_move_command(event.position)
 			get_viewport().set_input_as_handled()
+
+
+func _create_selection_box() -> void:
+	_selection_box = Panel.new()
+	_selection_box.name = "SelectionBox"
+	_selection_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_selection_box.visible = false
+	_selection_box.z_index = 1000
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.25, 0.82, 0.55, 0.12)
+	style.border_color = Color(0.25, 0.82, 0.55, 0.85)
+	style.set_border_width_all(1)
+	_selection_box.add_theme_stylebox_override("panel", style)
+	_hud_layer.add_child(_selection_box)
+
+
+func _begin_selection_drag(screen_position: Vector2) -> void:
+	_selection_drag_candidate = true
+	_selection_dragging = false
+	_selection_drag_start = screen_position
+	_selection_box.visible = false
+
+
+func _update_selection_drag(screen_position: Vector2) -> void:
+	if !_selection_drag_candidate && !_selection_dragging:
+		return
+
+	var distance: float = _selection_drag_start.distance_to(screen_position)
+	if !_selection_dragging && distance < SELECTION_DRAG_THRESHOLD:
+		return
+
+	_selection_dragging = true
+	var rect: Rect2 = _selection_rect_from_points(_selection_drag_start, screen_position)
+	_selection_box.position = rect.position
+	_selection_box.size = rect.size
+	_selection_box.visible = true
+
+
+func _finish_selection_drag(screen_position: Vector2) -> void:
+	if !_selection_drag_candidate && !_selection_dragging:
+		return
+
+	var was_dragging: bool = _selection_dragging
+	_selection_drag_candidate = false
+	_selection_dragging = false
+	_selection_box.visible = false
+
+	if was_dragging:
+		_select_units_in_screen_rect(_selection_rect_from_points(_selection_drag_start, screen_position))
+	else:
+		_select_unit_at_screen_position(screen_position)
+
+
+func _selection_rect_from_points(a: Vector2, b: Vector2) -> Rect2:
+	var min_position: Vector2 = Vector2(minf(a.x, b.x), minf(a.y, b.y))
+	var max_position: Vector2 = Vector2(maxf(a.x, b.x), maxf(a.y, b.y))
+	return Rect2(min_position, max_position - min_position)
 
 
 func _set_camera_zoom(value: float) -> void:
@@ -659,8 +742,21 @@ func _set_camera_zoom(value: float) -> void:
 	_camera.zoom = Vector2(clamped_zoom, clamped_zoom)
 
 
-func _is_over_hud(screen_position: Vector2) -> bool:
+func _is_over_ui(screen_position: Vector2) -> bool:
+	var hovered_control: Control = get_viewport().gui_get_hovered_control()
+	if _is_control_in_ui(hovered_control):
+		return true
 	return _hud.get_global_rect().has_point(screen_position)
+
+
+func _is_control_in_ui(control: Control) -> bool:
+	if control == null || control == _selection_box:
+		return false
+	if control == _hud || _hud.is_ancestor_of(control):
+		return true
+	if control == _debug_panel || _debug_panel.is_ancestor_of(control):
+		return true
+	return false
 
 
 func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
@@ -686,7 +782,7 @@ func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
 	var selection: Line2D = visuals.get_node("Selection")
 	var selection_radius: float = diameter * 0.5 + SELECTION_PADDING
 	selection.points = _selection_points(selection_radius)
-	selection.visible = unit_id == _selected_unit_id
+	selection.visible = _is_unit_selected(unit_id)
 
 	var label: Label = unit_node.get_node("Label")
 	label.text = "%s\nhp:%s" % [
@@ -709,63 +805,119 @@ func _select_unit_at_screen_position(screen_position: Vector2) -> void:
 			best_unit_id = int(unit_id)
 			best_distance = distance
 
-	_selected_unit_id = best_unit_id
+	if best_unit_id == 0:
+		_set_selected_units([])
+	else:
+		_set_selected_units([best_unit_id])
+
+
+func _select_units_in_screen_rect(screen_rect: Rect2) -> void:
+	var selected_ids: Array = []
+	var canvas_transform: Transform2D = get_viewport().get_canvas_transform()
+
+	for unit_id in _unit_snapshots.keys():
+		var unit: Dictionary = _unit_snapshots[unit_id]
+		if !bool(unit.get("can_control", false)):
+			continue
+
+		var screen_position: Vector2 = canvas_transform * _unit_snapshot_position(unit)
+		if screen_rect.has_point(screen_position):
+			selected_ids.append(int(unit_id))
+
+	selected_ids.sort()
+	_set_selected_units(selected_ids)
+
+
+func _set_selected_units(unit_ids: Array) -> void:
+	_selected_unit_ids.clear()
+	_selected_unit_id = 0
+	for unit_id_value in unit_ids:
+		var unit_id := int(unit_id_value)
+		if unit_id == 0 || !_unit_snapshots.has(unit_id):
+			continue
+		_selected_unit_ids[unit_id] = true
+		if _selected_unit_id == 0:
+			_selected_unit_id = unit_id
 	_refresh_selection_visuals()
 	_refresh_command_controls()
 
 
-func _issue_move_command(screen_position: Vector2) -> void:
-	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
+func _is_unit_selected(unit_id: int) -> bool:
+	return _selected_unit_ids.has(unit_id)
+
+
+func _normalize_selected_primary() -> void:
+	if _selected_unit_id != 0 && _selected_unit_ids.has(_selected_unit_id):
 		return
-	if !_selected_unit_can_control():
-		push_warning("Selected unit is not controlled by this player.")
+
+	_selected_unit_id = 0
+	var remaining_ids: Array = _selected_unit_ids.keys()
+	remaining_ids.sort()
+	for unit_id_value in remaining_ids:
+		var unit_id := int(unit_id_value)
+		if _unit_snapshots.has(unit_id):
+			_selected_unit_id = unit_id
+			return
+
+
+func _issue_move_command(screen_position: Vector2) -> void:
+	var unit_ids: Array = _selected_controllable_unit_ids()
+	if unit_ids.is_empty():
 		return
 
 	var target_position: Vector2 = _screen_to_world_position(screen_position)
 	var reverse := Input.is_key_pressed(KEY_D)
-	var feedback := RustBackend.issue_move_command(_selected_unit_id, target_position, reverse)
-	if !bool(feedback.get("accepted", false)):
-		push_warning("Rust move command rejected: %s %s" % [
-			feedback.get("rejected_reason", "unknown"),
-			feedback.get("detail", ""),
-		])
-		return
+	for unit_id_value in unit_ids:
+		var unit_id := int(unit_id_value)
+		var feedback := RustBackend.issue_move_command(unit_id, target_position, reverse)
+		if !bool(feedback.get("accepted", false)):
+			push_warning("Rust move command rejected for unit %s: %s %s" % [
+				unit_id,
+				feedback.get("rejected_reason", "unknown"),
+				feedback.get("detail", ""),
+			])
 
 
 func _issue_stop_command() -> void:
-	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
-		return
-	if !_selected_unit_can_control():
-		push_warning("Selected unit is not controlled by this player.")
-		return
-
-	var feedback := RustBackend.issue_stop_command(_selected_unit_id)
-	if !bool(feedback.get("accepted", false)):
-		push_warning("Rust stop command rejected: %s %s" % [
-			feedback.get("rejected_reason", "unknown"),
-			feedback.get("detail", ""),
-		])
+	var unit_ids: Array = _selected_controllable_unit_ids()
+	if unit_ids.is_empty():
+		push_warning("No controllable selected units to stop.")
 		return
 
-	_stop_command_button.disabled = true
+	var accepted_any := false
+	for unit_id_value in unit_ids:
+		var unit_id := int(unit_id_value)
+		var feedback := RustBackend.issue_stop_command(unit_id)
+		if !bool(feedback.get("accepted", false)):
+			push_warning("Rust stop command rejected for unit %s: %s %s" % [
+				unit_id,
+				feedback.get("rejected_reason", "unknown"),
+				feedback.get("detail", ""),
+			])
+		else:
+			accepted_any = true
+
+	if accepted_any:
+		_stop_command_button.disabled = true
 
 
 func _issue_produce_unit_command() -> void:
-	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
-		return
-	if !_selected_unit_can_control():
-		push_warning("Selected unit is not controlled by this player.")
+	var producer: Dictionary = _selected_producer()
+	if producer.is_empty():
+		push_warning("No selected unit can produce right now.")
 		return
 
-	var build_option := _selected_unit_primary_build_option()
+	var producer_entity_id := int(producer.get("unit_id", 0))
+	var build_option: Dictionary = producer.get("build_option", {})
 	if build_option.is_empty():
-		push_warning("Selected unit has no production option.")
+		push_warning("Selected producer has no production option.")
 		return
 
 	var unit := str(build_option.get("unit", ""))
-	var feedback := RustBackend.issue_produce_unit_command(_selected_unit_id, unit)
+	var feedback := RustBackend.issue_produce_unit_command(producer_entity_id, unit)
 	if !bool(feedback.get("accepted", false)):
-		push_warning("Rust produce command rejected: %s %s" % [
+		push_warning("Rust produce command rejected for unit %s: %s %s" % [
+			producer_entity_id,
 			feedback.get("rejected_reason", "unknown"),
 			feedback.get("detail", ""),
 		])
@@ -804,33 +956,26 @@ func _refresh_selection_visuals() -> void:
 	for unit_id in _unit_nodes.keys():
 		var node: Node2D = _unit_nodes[unit_id]
 		var selection: Line2D = node.get_node("Visuals/Selection")
-		selection.visible = int(unit_id) == _selected_unit_id
+		selection.visible = _is_unit_selected(int(unit_id))
 
 
 func _refresh_command_controls() -> void:
 	_stop_command_button.disabled = !_selected_unit_can_stop()
-	var build_option := _selected_unit_primary_build_option()
+	var producer: Dictionary = _selected_producer()
+	var build_option: Dictionary = producer.get("build_option", {})
 	if build_option.is_empty():
 		_produce_command_button.text = "Produce"
 	else:
 		_produce_command_button.text = "Produce %s" % _short_unit_name(str(build_option.get("display_name", build_option.get("unit", "unit"))))
-	_produce_command_button.disabled = !_selected_unit_can_produce()
+	_produce_command_button.disabled = producer.is_empty()
 
 
 func _selected_unit_can_stop() -> bool:
-	if !_selected_unit_can_control():
-		return false
-
-	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
-	return bool(unit.get("is_moving", false))
+	return !_selected_controllable_unit_ids().is_empty()
 
 
 func _selected_unit_can_produce() -> bool:
-	if !_selected_unit_can_control():
-		return false
-	if _selected_unit_primary_build_option().is_empty():
-		return false
-	return _selected_unit_production_queue().is_empty()
+	return !_selected_producer().is_empty()
 
 
 func _selected_unit_can_control() -> bool:
@@ -841,11 +986,28 @@ func _selected_unit_can_control() -> bool:
 	return bool(unit.get("can_control", false))
 
 
+func _selected_controllable_unit_ids() -> Array:
+	var unit_ids: Array = []
+	for unit_id_value in _selected_unit_ids.keys():
+		var unit_id := int(unit_id_value)
+		if !_unit_snapshots.has(unit_id):
+			continue
+		var unit: Dictionary = _unit_snapshots[unit_id]
+		if bool(unit.get("can_control", false)):
+			unit_ids.append(unit_id)
+	unit_ids.sort()
+	return unit_ids
+
+
 func _selected_unit_primary_build_option() -> Dictionary:
 	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
 		return {}
 
 	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
+	return _unit_primary_build_option(unit)
+
+
+func _unit_primary_build_option(unit: Dictionary) -> Dictionary:
 	for option_value in _map_array(unit, "build_options"):
 		if typeof(option_value) == TYPE_DICTIONARY:
 			var option: Dictionary = option_value
@@ -863,11 +1025,46 @@ func _selected_unit_production_queue() -> Array:
 	return _map_array(unit, "production_queue")
 
 
+func _unit_production_queue(unit: Dictionary) -> Array:
+	return _map_array(unit, "production_queue")
+
+
+func _selected_producer() -> Dictionary:
+	var selected_ids := _selected_controllable_unit_ids()
+	if _selected_unit_id != 0 && selected_ids.has(_selected_unit_id):
+		var primary_producer := _producer_for_unit_id(_selected_unit_id)
+		if !primary_producer.is_empty():
+			return primary_producer
+
+	for unit_id_value in selected_ids:
+		var unit_id := int(unit_id_value)
+		var producer := _producer_for_unit_id(unit_id)
+		if !producer.is_empty():
+			return producer
+
+	return {}
+
+
+func _producer_for_unit_id(unit_id: int) -> Dictionary:
+	if !_unit_snapshots.has(unit_id):
+		return {}
+	var unit: Dictionary = _unit_snapshots[unit_id]
+	var build_option := _unit_primary_build_option(unit)
+	if build_option.is_empty():
+		return {}
+	if !_unit_production_queue(unit).is_empty():
+		return {}
+	return {
+		"unit_id": unit_id,
+		"build_option": build_option,
+	}
+
+
 func _control_mode_summary() -> String:
 	var controllable_count := _controllable_unit_count()
 	if controllable_count == 0:
 		return "readonly"
-	if _selected_unit_id != 0:
+	if !_selected_unit_ids.is_empty():
 		if _selected_unit_can_control():
 			return "owned"
 		return "readonly"
@@ -927,6 +1124,15 @@ func _selected_unit_summary() -> String:
 		return "none"
 
 	var unit: Dictionary = _unit_snapshots[_selected_unit_id]
+	var selected_count: int = _selected_unit_ids.size()
+	if selected_count > 1:
+		return "%s units primary:%s hp:%s/%s team:%s" % [
+			selected_count,
+			unit.get("display_name", unit.get("kind", "unit")),
+			unit.get("health", 0),
+			unit.get("max_health", 0),
+			unit.get("team", 0),
+		]
 	return "%s hp:%s/%s team:%s" % [
 		unit.get("display_name", unit.get("kind", "unit")),
 		unit.get("health", 0),
@@ -961,10 +1167,16 @@ func _movement_command_summary() -> String:
 
 
 func _production_command_summary() -> String:
-	if _selected_unit_id == 0 || !_unit_snapshots.has(_selected_unit_id):
+	var producer: Dictionary = _selected_producer()
+	if producer.is_empty():
 		return "none"
 
-	var queue := _selected_unit_production_queue()
+	var producer_unit_id := int(producer.get("unit_id", 0))
+	if producer_unit_id == 0 || !_unit_snapshots.has(producer_unit_id):
+		return "none"
+
+	var producer_unit: Dictionary = _unit_snapshots[producer_unit_id]
+	var queue := _unit_production_queue(producer_unit)
 	if !queue.is_empty() && typeof(queue[0]) == TYPE_DICTIONARY:
 		var entry: Dictionary = queue[0]
 		return "%s %.1fs" % [
@@ -972,7 +1184,7 @@ func _production_command_summary() -> String:
 			float(entry.get("remaining_seconds", 0.0)),
 		]
 
-	var build_option := _selected_unit_primary_build_option()
+	var build_option: Dictionary = producer.get("build_option", {})
 	if build_option.is_empty():
 		return "none"
 
@@ -1306,4 +1518,6 @@ func _remove_missing_units(alive_unit_ids: Dictionary) -> void:
 		_remove_move_target_marker(int_unit_id)
 		if int_unit_id == _selected_unit_id:
 			_selected_unit_id = 0
+		_selected_unit_ids.erase(int_unit_id)
 		node.queue_free()
+	_normalize_selected_primary()

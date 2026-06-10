@@ -45,7 +45,7 @@ rendering/snap/snap_2d_transforms_to_pixel=false
 rendering/snap/snap_2d_vertices_to_pixel=false
 rendering/size/viewport_height=648
 rendering/quality/msaa_3d=1
-rendering/quality/msaa_2d=1
+rendering/quality/msaa_2d=0
 
 [rendering]
 
@@ -53,5 +53,5 @@ textures/canvas_textures/default_texture_filter=3
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
-anti_aliasing/quality/msaa_2d=1
+anti_aliasing/quality/msaa_2d=0
 anti_aliasing/quality/msaa_3d=1
