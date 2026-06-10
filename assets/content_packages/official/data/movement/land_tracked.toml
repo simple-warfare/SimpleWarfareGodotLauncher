@@ -1,10 +1,12 @@
 id = "simple_warfare:movement.land_tracked"
 kind = "land"
+drive_model = "tracked"
 pathing_layer = "land"
-max_speed = 110.0
-acceleration = 300.0
-deceleration = 500.0
-turn_rate_degrees_per_second = 180.0
+max_speed = 0.9
+acceleration = 1.6
+deceleration = 2.8
+turn_rate_degrees_per_second = 420.0
+turn_acceleration_degrees_per_second_squared = 1200.0
 can_reverse = false
 sliding = false
 

@@ -1,10 +1,12 @@
 id = "simple_warfare:movement.air_light"
 kind = "air"
+drive_model = "omnidirectional"
 pathing_layer = "air"
-max_speed = 180.0
-acceleration = 240.0
-deceleration = 320.0
-turn_rate_degrees_per_second = 360.0
+max_speed = 1.35
+acceleration = 2.2
+deceleration = 3.0
+turn_rate_degrees_per_second = 720.0
+turn_acceleration_degrees_per_second_squared = 1800.0
 target_height = 20.0
 sliding = true
 
