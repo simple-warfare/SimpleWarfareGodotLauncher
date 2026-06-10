@@ -5,6 +5,7 @@ pathing_layer = "land"
 max_speed = 0.75
 acceleration = 1.8
 deceleration = 2.6
+reverse_speed_ratio = 1.0
 turn_rate_degrees_per_second = 720.0
 turn_acceleration_degrees_per_second_squared = 1800.0
 turn_deceleration_degrees_per_second_squared = 2200.0
