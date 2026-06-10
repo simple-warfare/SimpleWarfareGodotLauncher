@@ -34,6 +34,8 @@ weapons = ["simple_warfare:weapon.turret_cannon"]
 
 [render]
 body = "simple_warfare:texture.unit.turret.base"
+rotates_with_facing = false
+facing_offset_degrees = 0.0
 attachments = [
   { id = "turret", sprite = "simple_warfare:texture.unit.turret.top", mount = { x = 0.0, y = 0.0 }, follows_aim = true },
 ]

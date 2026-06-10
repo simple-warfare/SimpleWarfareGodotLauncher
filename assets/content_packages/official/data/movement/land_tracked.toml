@@ -7,6 +7,7 @@ acceleration = 1.6
 deceleration = 2.8
 turn_rate_degrees_per_second = 420.0
 turn_acceleration_degrees_per_second_squared = 1200.0
+turn_deceleration_degrees_per_second_squared = 1600.0
 can_reverse = false
 sliding = false
 

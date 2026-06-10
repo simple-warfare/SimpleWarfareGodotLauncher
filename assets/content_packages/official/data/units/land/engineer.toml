@@ -44,6 +44,8 @@ weapons = ["simple_warfare:weapon.engineer_tool"]
 
 [render]
 body = "simple_warfare:texture.unit.engineer.body"
+rotates_with_facing = true
+facing_offset_degrees = 90.0
 selection_radius = 18.0
 
 [actions]

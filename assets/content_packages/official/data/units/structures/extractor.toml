@@ -30,6 +30,8 @@ income_per_second = { "simple_warfare:resource.credits" = 8.0 }
 
 [render]
 body = "simple_warfare:texture.unit.extractor.body"
+rotates_with_facing = false
+facing_offset_degrees = 0.0
 selection_radius = 25.0
 
 [render.body_animation]
