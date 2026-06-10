@@ -31,6 +31,7 @@ var _object_layer_root: Node2D
 var _last_tile_layers_key := ""
 var _last_objects_key := ""
 var _tile_texture_cache: Dictionary = {}
+var _unit_texture_cache: Dictionary = {}
 var _content_package_root := ""
 var _frame_delta := 0.0
 var _camera_initialized := false
@@ -367,7 +368,7 @@ func _add_tile_fill(parent: Node, map_size: Vector2, color: Color) -> void:
 func _load_tile_texture(relative_source: String) -> Texture2D:
 	var package_root := _content_package_root
 	if package_root.is_empty():
-		package_root = RustBackend.get_assets_root().path_join("content_packages/official_base_game")
+		package_root = RustBackend.get_assets_root().path_join("content_packages/official")
 	var source_path := package_root.path_join(relative_source)
 	if _tile_texture_cache.has(source_path):
 		return _tile_texture_cache[source_path]
@@ -380,6 +381,184 @@ func _load_tile_texture(relative_source: String) -> Texture2D:
 
 	var texture := ImageTexture.create_from_image(image)
 	_tile_texture_cache[source_path] = texture
+	return texture
+
+
+func _unit_render(unit: Dictionary) -> Dictionary:
+	var render_value: Variant = unit.get("render", {})
+	if typeof(render_value) != TYPE_DICTIONARY:
+		return {}
+	var render: Dictionary = render_value
+	return render
+
+
+func _unit_sprite_frame_grid(sprite: Dictionary) -> Dictionary:
+	var frame_grid_value: Variant = sprite.get("frame_grid", {})
+	if typeof(frame_grid_value) != TYPE_DICTIONARY:
+		return {}
+	var frame_grid: Dictionary = frame_grid_value
+	return frame_grid
+
+
+func _unit_sprite_pivot(sprite: Dictionary) -> Dictionary:
+	var pivot_value: Variant = sprite.get("pivot", {})
+	if typeof(pivot_value) != TYPE_DICTIONARY:
+		return {}
+	var pivot: Dictionary = pivot_value
+	return pivot
+
+
+func _unit_body_animation(render: Dictionary) -> Dictionary:
+	var animation_value: Variant = render.get("body_animation", {})
+	if typeof(animation_value) != TYPE_DICTIONARY:
+		return {}
+	var animation: Dictionary = animation_value
+	return animation
+
+
+func _update_unit_render_visuals(unit_id: int, unit: Dictionary, visuals: Node2D, diameter: float) -> void:
+	var render := _unit_render(unit)
+	var body_value: Variant = render.get("body", {})
+	var body := body_value if typeof(body_value) == TYPE_DICTIONARY else {}
+	var body_sprite: Sprite2D = visuals.get_node("BodySprite")
+	var fallback_body: ColorRect = visuals.get_node("Body")
+
+	if body.is_empty():
+		body_sprite.visible = false
+		fallback_body.visible = true
+	else:
+		var texture := _load_unit_texture(str(body.get("path", "")))
+		if texture == null:
+			body_sprite.visible = false
+			fallback_body.visible = true
+		else:
+			fallback_body.visible = false
+			body_sprite.visible = true
+			body_sprite.texture = texture
+			_apply_unit_sprite_region(body_sprite, body, _unit_body_animation(render), bool(unit.get("is_moving", false)))
+			_scale_unit_sprite(body_sprite, body, diameter)
+
+	_update_unit_attachments(unit_id, render, visuals.get_node("Attachments"), diameter)
+
+
+func _apply_unit_sprite_region(sprite: Sprite2D, sprite_definition: Dictionary, animation: Dictionary, is_moving: bool) -> void:
+	var frame_grid := _unit_sprite_frame_grid(sprite_definition)
+	if frame_grid.is_empty():
+		sprite.region_enabled = false
+		sprite.offset = Vector2.ZERO
+		return
+
+	var frame_count := max(int(frame_grid.get("frame_count", 1)), 1)
+	var frame_index := 0
+	if !animation.is_empty():
+		var mode := str(animation.get("mode", ""))
+		var should_animate := mode == "ambient_loop" || (mode == "loop_when_moving" && is_moving)
+		var frames := _map_array(animation, "frames")
+		var frames_per_second := max(float(animation.get("frames_per_second", 1.0)), 0.01)
+		if should_animate && !frames.is_empty():
+			var frame_ms := max(1.0, 1000.0 / frames_per_second)
+			var animation_index := int(float(Time.get_ticks_msec()) / frame_ms) % frames.size()
+			frame_index = clampi(int(frames[animation_index]), 0, frame_count - 1)
+
+	var frame_width := int(frame_grid.get("frame_width", 0))
+	var frame_height := int(frame_grid.get("frame_height", 0))
+	var columns := max(int(frame_grid.get("columns", 1)), 1)
+	if frame_width <= 0 || frame_height <= 0:
+		sprite.region_enabled = false
+		sprite.offset = Vector2.ZERO
+		return
+
+	sprite.region_enabled = true
+	sprite.region_rect = Rect2(
+		float((frame_index % columns) * frame_width),
+		float(int(frame_index / columns) * frame_height),
+		float(frame_width),
+		float(frame_height)
+	)
+	sprite.offset = Vector2.ZERO
+
+
+func _scale_unit_sprite(sprite: Sprite2D, sprite_definition: Dictionary, diameter: float) -> void:
+	var size := _unit_sprite_display_size(sprite, sprite_definition)
+	var max_size := max(size.x, size.y)
+	if max_size <= 0.0:
+		sprite.scale = Vector2.ONE
+		return
+	var scale := diameter / max_size
+	sprite.scale = Vector2(scale, scale)
+
+
+func _unit_sprite_display_size(sprite: Sprite2D, sprite_definition: Dictionary) -> Vector2:
+	var frame_grid := _unit_sprite_frame_grid(sprite_definition)
+	if !frame_grid.is_empty():
+		return Vector2(float(frame_grid.get("frame_width", 0)), float(frame_grid.get("frame_height", 0)))
+	if sprite.texture == null:
+		return UNIT_SIZE
+	return sprite.texture.get_size()
+
+
+func _update_unit_attachments(_unit_id: int, render: Dictionary, attachments_root: Node2D, diameter: float) -> void:
+	var alive_attachment_ids := {}
+	for attachment_value in _map_array(render, "attachments"):
+		if typeof(attachment_value) != TYPE_DICTIONARY:
+			continue
+		var attachment: Dictionary = attachment_value
+		var attachment_id := str(attachment.get("id", "attachment"))
+		alive_attachment_ids[attachment_id] = true
+		var sprite := _get_or_create_attachment_sprite(attachments_root, attachment_id)
+		var sprite_value: Variant = attachment.get("sprite", {})
+		var sprite_definition := sprite_value if typeof(sprite_value) == TYPE_DICTIONARY else {}
+		var texture := _load_unit_texture(str(sprite_definition.get("path", "")))
+		if texture == null:
+			sprite.visible = false
+			continue
+		sprite.visible = true
+		sprite.texture = texture
+		_apply_unit_sprite_region(sprite, sprite_definition, {}, true)
+		_scale_unit_sprite(sprite, sprite_definition, diameter)
+		sprite.position = Vector2(float(attachment.get("mount_x", 0.0)), float(attachment.get("mount_y", 0.0)))
+		var spin_rate := float(attachment.get("spin_rate_degrees_per_second", 0.0))
+		if spin_rate != 0.0:
+			sprite.rotation_degrees = fmod(float(Time.get_ticks_msec()) * 0.001 * spin_rate, 360.0)
+		else:
+			sprite.rotation_degrees = 0.0
+		var pivot := _unit_sprite_pivot(sprite_definition)
+		if !pivot.is_empty():
+			sprite.offset = Vector2(-float(pivot.get("x", 0.0)), -float(pivot.get("y", 0.0)))
+
+	for child in attachments_root.get_children():
+		if !alive_attachment_ids.has(str(child.name)):
+			child.queue_free()
+
+
+func _get_or_create_attachment_sprite(parent: Node2D, attachment_id: String) -> Sprite2D:
+	if parent.has_node(attachment_id):
+		return parent.get_node(attachment_id)
+	var sprite := Sprite2D.new()
+	sprite.name = attachment_id
+	sprite.centered = true
+	parent.add_child(sprite)
+	return sprite
+
+
+func _load_unit_texture(relative_source: String) -> Texture2D:
+	if relative_source.is_empty():
+		return null
+	var package_root := _content_package_root
+	if package_root.is_empty():
+		package_root = RustBackend.get_assets_root().path_join("content_packages/official")
+	var source_path := package_root.path_join(relative_source)
+	if _unit_texture_cache.has(source_path):
+		return _unit_texture_cache[source_path]
+
+	var image := Image.new()
+	var load_error := image.load(source_path)
+	if load_error != OK:
+		_unit_texture_cache[source_path] = null
+		return null
+
+	var texture := ImageTexture.create_from_image(image)
+	_unit_texture_cache[source_path] = texture
 	return texture
 
 
@@ -490,6 +669,7 @@ func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
 	body.position = -body.size * 0.5
 	body.color = _team_color(int(unit.get("team", 0)))
 	body.rotation_degrees = 0.0
+	_update_unit_render_visuals(unit_id, unit, visuals, diameter)
 
 	var selection: Line2D = visuals.get_node("Selection")
 	var selection_radius: float = diameter * 0.5 + SELECTION_PADDING
@@ -968,6 +1148,15 @@ func _get_or_create_unit_node(unit_id: int) -> Node2D:
 	body.position = -UNIT_SIZE * 0.5
 	body.color = Color(0.25, 0.82, 0.55, 1.0)
 	visuals.add_child(body)
+
+	var body_sprite := Sprite2D.new()
+	body_sprite.name = "BodySprite"
+	body_sprite.visible = false
+	visuals.add_child(body_sprite)
+
+	var attachments := Node2D.new()
+	attachments.name = "Attachments"
+	visuals.add_child(attachments)
 
 	var selection: Line2D = Line2D.new()
 	selection.name = "Selection"
