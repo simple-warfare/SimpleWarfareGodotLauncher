@@ -1,10 +1,10 @@
 # SimpleWarfareGodotLauncher
 
-这是 `Simple Warfare` 的 Godot 前端工程。
+这是 `Simple Warfare` Godot 前端工程
 
-当前工程已经从旧启动器原型中清理出来，只保留新的启动结构、Rust GDExtension 接入、基础前端资源和必要文档。
+当前工程已经从旧启动器原型中清理出来，只保留新的启动结构、Rust GDExtension 接入、基础前端资源和必要文档
 
-如果后续需要参考旧 UI、旧场景或旧脚本，应该通过 Git 历史或团队约定的历史备份读取，不应把旧 `GLOBALS / Backend / Adaptor` 体系重新搬回当前工程。
+如果后续需要参考旧 UI、旧场景或旧脚本，应该通过 Git 历史或团队约定的历史备份读取，不应把`GLOBALS / Backend / Adaptor` 体系重新搬回当前工程
 
 ## 当前技术栈
 
@@ -33,77 +33,77 @@ project.godot
     -> scenes/game.tscn
 ```
 
-核心路径：
+核心路径
 
 - `addons/rusty_core/`
-  - Rust GDExtension 配置和本地动态库。
+  - Rust GDExtension 配置和本地动态库
 - `assets/`
-  - Godot 直接导出的基础前端资源。
+  - Godot 直接导出的基础前端资源
 - `scenes/bootstrap.tscn`
-  - 正式启动入口。
+  - 正式启动入口
 - `scenes/main_menu.tscn`
-  - 当前安全主菜单入口。
+  - 当前安全主菜单入口
 - `scenes/game.tscn`
-  - 当前最小游戏场景，用简单方块渲染 Rust snapshot 实体。
+  - 当前最小游戏场景，用简单方块渲Rust frontend frame 实体
 - `scripts/backend/rust_backend.gd`
-  - Godot 到 Rust 的统一适配层。
+  - Godot Rust 的统一适配层
 - `scripts/bootstrap/resource_bootstrap.gd`
-  - 初始化 `user://assets` 和 `user://mods` 运行时目录。
+  - 初始`user://assets` `user://mods` 运行时目录
 - `scripts/app/scene_router.gd`
-  - 统一场景跳转。
+  - 统一场景跳转
 - `scripts/app/app_state.gd`
-  - 保存少量前端状态。
+  - 保存少量前端状态
 
 ## 当前运行流程
 
 ```text
 Godot 启动
   -> Bootstrap
-    -> RustBackend 把 user://assets 真实路径传给 RustyCore 并初始化
-    -> ResourceBootstrap 初始化 user://assets 和 user://mods
-    -> AppState 记录启动状态
+    -> RustBackend user://assets 真实路径传给 RustyCore 并初始化
+    -> ResourceBootstrap 初始user://assets user://mods
+    -> AppState 记录启动状
     -> SceneRouter 进入 main_menu.tscn
 ```
 
-`ResourceBootstrap` 不再在启动阶段解压资源包。它只确保运行时可写目录存在：
+`ResourceBootstrap` 不再在启动阶段解压资源包。它只确保运行时可写目录存在
 
 ```text
 user://assets
 user://mods
 ```
 
-实际物理路径由 Godot 按平台映射，代码中不要硬编码本机路径。
+实际物理路径Godot 按平台映射，代码中不要硬编码本机路径
 
-## 当前已完成
+## 当前已完
 
-- Godot 能加载 Rust GDExtension。
-- Godot 能通过 `RustBackend` 调用 Rust `RustyCore`。
-- 启动流程能初始化 Rust 和运行时资源目录。
-- 新主菜单的单人 / 主机 / 加入按钮已能调用 Rust runtime mode API。
-- 单人模式和主机模式启动成功后会进入 `game.tscn`。
-- 加入远程房间可输入 server 地址，会启动 UDP client，并在收到首个 server snapshot 后进入 `game.tscn`。
-- Join 等待期间会显示目标地址、等待时间和超时提示；Host 启动失败会显示 Rust 错误详情。
-- 单人模式和主机模式都会通过 Godot `_process(delta)` 驱动 Rust update，并显示结构化 `Dictionary` frontend snapshot。
-- frontend snapshot 已接入 Rust server ECS，主菜单和游戏场景可显示地图、单位、移动目标和命令状态。
-- frontend snapshot 已包含最小房间队伍槽，游戏状态行会显示本机 team 和 player slot 数。
-- Host / Join 成功后会进入最小房间页，房间页显示本机队伍、玩家槽、host / connected / local 标记，并提供 host-only Start 和 Leave。
-- Host 点击 Start 会提交 Rust `start_game` 命令；server 广播 `room.phase=in_game` 后，Host 和 Join client 都会自动进入游戏场景。
-- 游戏场景已支持基础镜头、单位选择、移动命令和停止命令；Join client 只会对本机拥有的单位开放命令操作。
-- 前端已提供 Rust diagnostics 面板，可刷新、复制、导出和清空当前 Rust 诊断日志。
-- `SceneRouter` 和 `AppState` 已经作为 autoload 注册。
-- 当前工程已经移除旧外部后端、旧场景、旧 `class_name` 脚本和旧 C# 线索。
+- Godot 能加Rust GDExtension
+- Godot 能通过 `RustBackend` 调用 Rust `RustyCore`
+- 启动流程能初始化 Rust 和运行时资源目录
+- 新主菜单的单/ 主机 / 加入按钮已能调用 Rust runtime mode API
+- 单人模式和主机模式启动成功后会进`game.tscn`
+- 加入远程房间可输server 地址，会启动 UDP client，并在收到首server frame 后进`game.tscn`
+- Join 等待期间会显示目标地址、等待时间和超时提示；Host 启动失败会显Rust 错误详情
+- 单人模式和主机模式都会通过 Godot `_process(delta)` 驱动 Rust update，并显示结构`Dictionary` frontend frame
+- frontend frame 已接Rust server ECS，主菜单和游戏场景可显示地图、单位、移动目标和命令状态
+- frontend frame 已包含最小房间队伍槽，游戏状态行会显示本team player slot 数
+- Host / Join 成功后会进入最小房间页，房间页显示本机队伍、玩家槽、host / connected / local 标记，并提供 host-only Start Leave
+- Host 点击 Start 会提Rust `start_game` 命令；server 广播 `room.phase=in_game` 后，Host Join client 都会自动进入游戏场景
+- 游戏场景已支持基础镜头、单位选择、移动命令和停止命令；Join client 只会对本机拥有的单位开放命令操作
+- 前端已提Rust diagnostics 面板，可刷新、复制、导出和清空当前 Rust 诊断日志
+- `SceneRouter` `AppState` 已经作为 autoload 注册
+- 当前工程已经移除旧外部后端、旧场景、旧 `class_name` 脚本和旧 C# 线索
 
-## 当前未完成
+## 当前未完
 
-- 新主菜单还是安全占位入口，不是最终 UI。
-- 房间页仍缺少玩家队伍选择、准备状态、连接取消 / 重试流程和更完整的网络错误恢复。
-- 设置页、模组页、地图页需要重新按新结构实现；当前入口会以状态提示方式显示未完成信息。
-- 游戏场景目前仍是调试表现层，还没有正式地图渲染、单位美术或完整 HUD。
-- Android / iOS 导出需要重新配置，不应沿用旧导出预设。
+- 新主菜单还是安全占位入口，不是最UI
+- 房间页仍缺少玩家队伍选择、准备状态、连接取/ 重试流程和更完整的网络错误恢复
+- 设置页、模组页、地图页需要重新按新结构实现；当前入口会以状态提示方式显示未完成信息
+- 游戏场景目前仍是调试表现层，还没有正式地图渲染、单位美术或完整 HUD
+- Android / iOS 导出需要重新配置，不应沿用旧导出预设
 
 ## Rust 核心
 
-Rust 核心工程位于 `simple-warfare/rusty_warfare` 仓库。
+Rust 核心工程位于 `simple-warfare/rusty_warfare` 仓库
 
 ## 建议阅读顺序
 

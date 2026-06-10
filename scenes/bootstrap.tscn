@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://ddekv2gu68oe"]
 
-[ext_resource type="Script" path="res://scripts/bootstrap/bootstrap.gd" id="1_8whs8"]
+[ext_resource type="Script" uid="uid://c65ijw3ivxdtq" path="res://scripts/bootstrap/bootstrap.gd" id="1_8whs8"]
 
-[node name="Bootstrap" type="Control"]
+[node name="Bootstrap" type="Control" unique_id=861540471]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_8whs8")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=529343534]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0588235, 0.0705882, 0.0823529, 1)
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="Panel" type="PanelContainer" parent="." unique_id=24465392]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -34,81 +34,81 @@ offset_bottom = 170.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Content" type="VBoxContainer" parent="Panel"]
+[node name="Content" type="VBoxContainer" parent="Panel" unique_id=1631195005]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Title" type="Label" parent="Panel/Content"]
+[node name="Title" type="Label" parent="Panel/Content" unique_id=1058112515]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_font_sizes/font_size = 36
 text = "Simple Warfare Launcher"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 36
 
-[node name="Description" type="Label" parent="Panel/Content"]
+[node name="Description" type="Label" parent="Panel/Content" unique_id=1497304725]
 layout_mode = 2
 text = "正式启动入口：Godot UI 通过 RustBackend 访问 Rust GDExtension。"
 horizontal_alignment = 1
 
-[node name="StatusGrid" type="GridContainer" parent="Panel/Content"]
+[node name="StatusGrid" type="GridContainer" parent="Panel/Content" unique_id=1916461667]
 layout_mode = 2
 columns = 2
 
-[node name="VersionLabel" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="VersionLabel" type="Label" parent="Panel/Content/StatusGrid" unique_id=1562397911]
 layout_mode = 2
 text = "Rust core version"
 
-[node name="VersionValue" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="VersionValue" type="Label" parent="Panel/Content/StatusGrid" unique_id=1691245870]
 unique_name_in_owner = true
 layout_mode = 2
 text = "unknown"
 
-[node name="StatusLabel" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="StatusLabel" type="Label" parent="Panel/Content/StatusGrid" unique_id=1763968132]
 layout_mode = 2
 text = "Runtime status"
 
-[node name="StatusValue" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="StatusValue" type="Label" parent="Panel/Content/StatusGrid" unique_id=1011467819]
 unique_name_in_owner = true
 layout_mode = 2
 text = "unknown"
 
-[node name="ResultLabel" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="ResultLabel" type="Label" parent="Panel/Content/StatusGrid" unique_id=9580331]
 layout_mode = 2
 text = "Last result"
 
-[node name="ResultValue" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="ResultValue" type="Label" parent="Panel/Content/StatusGrid" unique_id=1827692186]
 unique_name_in_owner = true
 layout_mode = 2
 text = "unknown"
 
-[node name="AssetsStatusLabel" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="AssetsStatusLabel" type="Label" parent="Panel/Content/StatusGrid" unique_id=1117916236]
 layout_mode = 2
 text = "Assets status"
 
-[node name="AssetsStatusValue" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="AssetsStatusValue" type="Label" parent="Panel/Content/StatusGrid" unique_id=1505852016]
 unique_name_in_owner = true
 layout_mode = 2
 text = "unknown"
 
-[node name="AssetsResultLabel" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="AssetsResultLabel" type="Label" parent="Panel/Content/StatusGrid" unique_id=1822109555]
 layout_mode = 2
 text = "Assets result"
 
-[node name="AssetsResultValue" type="Label" parent="Panel/Content/StatusGrid"]
+[node name="AssetsResultValue" type="Label" parent="Panel/Content/StatusGrid" unique_id=727990213]
 unique_name_in_owner = true
 layout_mode = 2
 text = "unknown"
 
-[node name="Actions" type="HBoxContainer" parent="Panel/Content"]
+[node name="Actions" type="HBoxContainer" parent="Panel/Content" unique_id=491988604]
 layout_mode = 2
 alignment = 1
 
-[node name="InitializeButton" type="Button" parent="Panel/Content/Actions"]
+[node name="InitializeButton" type="Button" parent="Panel/Content/Actions" unique_id=724149652]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Initialize"
 
-[node name="ShutdownButton" type="Button" parent="Panel/Content/Actions"]
+[node name="ShutdownButton" type="Button" parent="Panel/Content/Actions" unique_id=1729769399]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Shutdown"
