@@ -5,6 +5,9 @@ resources = [
 
 factions = [
   "data/factions/human.toml",
+]
+
+faction_sets = [
   "data/factions/faction_sets.toml",
 ]
 
