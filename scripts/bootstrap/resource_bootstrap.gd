@@ -5,7 +5,7 @@ const TARGET_ROOT := "user://assets"
 const MODS_ROOT := "user://mods"
 const SOURCE_CONTENT_PACKAGES_ROOT := "res://assets/content_packages"
 const TARGET_CONTENT_PACKAGES_ROOT := TARGET_ROOT + "/content_packages"
-const BOOTSTRAP_VERSION := "3"
+const BOOTSTRAP_VERSION := "4"
 const VERSION_FILE := TARGET_ROOT + "/.bootstrap_version"
 
 
