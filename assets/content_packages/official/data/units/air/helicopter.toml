@@ -40,7 +40,7 @@ weapons = ["simple_warfare:weapon.tank_cannon"]
 [render]
 body = "simple_warfare:texture.unit.helicopter.body"
 attachments = [
-  { id = "rotor", sprite = "simple_warfare:texture.unit.helicopter.blades", mount = { x = 0.0, y = 0.0 }, spin_rate_degrees_per_second = 1800.0 },
+  { id = "rotor", sprite = "simple_warfare:texture.unit.helicopter.blades", mount = { x = 0.0, y = 0.0 }, pivot = { x = 23.0, y = 10.0 }, spin_rate_degrees_per_second = 1800.0 },
 ]
 shadow = "auto"
 selection_radius = 15.0

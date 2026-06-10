@@ -39,6 +39,11 @@ attachments = [
 ]
 selection_radius = 11.0
 
+[render.body_animation]
+mode = "loop_when_moving"
+frames = [0, 1, 2]
+frames_per_second = 8.0
+
 [actions]
 available = []
 

@@ -32,3 +32,7 @@ income_per_second = { "simple_warfare:resource.credits" = 8.0 }
 body = "simple_warfare:texture.unit.extractor.body"
 selection_radius = 25.0
 
+[render.body_animation]
+mode = "ambient_loop"
+frames = [0, 1, 2, 3]
+frames_per_second = 6.0

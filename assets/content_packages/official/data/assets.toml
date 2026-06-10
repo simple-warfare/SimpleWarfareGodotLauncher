@@ -3,6 +3,7 @@ id = "simple_warfare:texture.unit.tank.body"
 kind = "image"
 path = "assets/textures/units/tank_body.png"
 usage = "unit_body"
+frame_grid = { frame_width = 16, frame_height = 30, columns = 3, rows = 1, frame_count = 3 }
 
 [[assets]]
 id = "simple_warfare:texture.unit.tank.turret"
@@ -27,6 +28,7 @@ id = "simple_warfare:texture.unit.extractor.body"
 kind = "image"
 path = "assets/textures/units/extractor_body.png"
 usage = "unit_body"
+frame_grid = { frame_width = 37, frame_height = 59, columns = 4, rows = 1, frame_count = 4 }
 
 [[assets]]
 id = "simple_warfare:texture.unit.turret.base"
@@ -51,6 +53,7 @@ id = "simple_warfare:texture.unit.helicopter.blades"
 kind = "image"
 path = "assets/textures/units/helicopter_blades.png"
 usage = "unit_attachment"
+pivot = { x = 23.0, y = 10.0 }
 
 [[assets]]
 id = "simple_warfare:texture.projectile.tank_shell"

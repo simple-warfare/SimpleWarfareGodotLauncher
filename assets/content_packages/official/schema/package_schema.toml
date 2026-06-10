@@ -18,6 +18,11 @@ resolve_package_local_paths = true
 reject_unknown_references = true
 runtime_output = "complete_definitions"
 
+[assets]
+image_descriptors = ["single_image", "frame_grid"]
+frame_grid_required_fields = ["frame_width", "frame_height", "columns", "rows", "frame_count"]
+attachment_descriptors = ["pivot"]
+
 [maps]
 directory_per_map = true
 required_files = ["map.toml", "terrain.toml", "teams.toml", "spawns.toml"]
@@ -52,6 +57,7 @@ optional_sections = [
   "actions",
   "attachments",
   "animation",
+  "render.body_animation",
 ]
 
 [actions]
