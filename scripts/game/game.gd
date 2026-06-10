@@ -263,21 +263,24 @@ func _refresh_objects(objects: Array) -> void:
 
 
 func _map_tile_definitions(tilesets: Array) -> Dictionary:
-	var definitions := {}
+	var definitions: Dictionary = {}
 	for tileset_value in tilesets:
 		if typeof(tileset_value) != TYPE_DICTIONARY:
 			continue
 		var tileset: Dictionary = tileset_value
-		var tileset_id := str(tileset.get("id", ""))
-		var source := str(tileset.get("source", ""))
+		var tileset_id: String = str(tileset.get("id", ""))
+		var tileset_source: String = str(tileset.get("source", ""))
 		for tile_value in _map_array(tileset, "tiles"):
 			if typeof(tile_value) != TYPE_DICTIONARY:
 				continue
 			var tile: Dictionary = tile_value
-			var tile_id := int(tile.get("id", 0))
+			var tile_id: int = int(tile.get("id", 0))
+			var tile_source: String = str(tile.get("source", ""))
+			if tile_source.is_empty():
+				tile_source = tileset_source
 			definitions[_tile_definition_key(tileset_id, tile_id)] = {
 				"color": _parse_tile_color(str(tile.get("color", "")), tile_id),
-				"source": source,
+				"source": tile_source,
 				"source_x": int(tile.get("source_x", -1)),
 				"source_y": int(tile.get("source_y", -1)),
 				"source_width": int(tile.get("source_width", -1)),
