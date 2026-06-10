@@ -22,9 +22,10 @@ func map_tile_definitions(tilesets: Array) -> Dictionary:
 				continue
 			var tile: Dictionary = tile_value
 			var tile_id := int(tile.get("id", 0))
+			var tile_source := str(tile.get("source", source))
 			definitions[tile_definition_key(tileset_id, tile_id)] = {
 				"color": parse_tile_color(str(tile.get("color", "")), tile_id),
-				"source": source,
+				"source": tile_source,
 				"source_x": int(tile.get("source_x", -1)),
 				"source_y": int(tile.get("source_y", -1)),
 				"source_width": int(tile.get("source_width", -1)),
