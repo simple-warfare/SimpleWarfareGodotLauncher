@@ -249,12 +249,13 @@ func update_runtime(delta_seconds: float) -> Dictionary:
 	return _store_runtime_result(_rusty_core.call("update", delta_seconds))
 
 
-func issue_move_command(entity_id: int, target_position: Vector2) -> Dictionary:
+func issue_move_command(entity_id: int, target_position: Vector2, reverse: bool = false) -> Dictionary:
 	return submit_player_command({
 		"type": "move_entity",
 		"entity_id": entity_id,
 		"target_x": target_position.x,
 		"target_y": target_position.y,
+		"reverse": reverse,
 	})
 
 

@@ -722,7 +722,8 @@ func _issue_move_command(screen_position: Vector2) -> void:
 		return
 
 	var target_position: Vector2 = _screen_to_world_position(screen_position)
-	var feedback := RustBackend.issue_move_command(_selected_unit_id, target_position)
+	var reverse := Input.is_key_pressed(KEY_D)
+	var feedback := RustBackend.issue_move_command(_selected_unit_id, target_position, reverse)
 	if !bool(feedback.get("accepted", false)):
 		push_warning("Rust move command rejected: %s %s" % [
 			feedback.get("rejected_reason", "unknown"),
