@@ -34,6 +34,9 @@ weapons = ["simple_warfare:weapon.tank_cannon"]
 
 [render]
 body = "simple_warfare:texture.unit.tank.body"
+attachments = [
+  { id = "turret", sprite = "simple_warfare:texture.unit.tank.turret", mount = { x = 0.0, y = 0.0 }, follows_aim = true },
+]
 selection_radius = 11.0
 
 [actions]

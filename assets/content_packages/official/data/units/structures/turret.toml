@@ -33,6 +33,9 @@ build_time_seconds = 20.8
 weapons = ["simple_warfare:weapon.turret_cannon"]
 
 [render]
-body = "simple_warfare:texture.unit.factory.body"
+body = "simple_warfare:texture.unit.turret.base"
+attachments = [
+  { id = "turret", sprite = "simple_warfare:texture.unit.turret.top", mount = { x = 0.0, y = 0.0 }, follows_aim = true },
+]
 selection_radius = 22.0
 

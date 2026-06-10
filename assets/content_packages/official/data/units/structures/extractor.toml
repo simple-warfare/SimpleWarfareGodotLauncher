@@ -29,6 +29,6 @@ build_time_seconds = 16.7
 income_per_second = { "simple_warfare:resource.credits" = 8.0 }
 
 [render]
-body = "simple_warfare:texture.unit.factory.body"
+body = "simple_warfare:texture.unit.extractor.body"
 selection_radius = 25.0
 

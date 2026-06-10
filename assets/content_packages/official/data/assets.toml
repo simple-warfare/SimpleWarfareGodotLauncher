@@ -5,10 +5,52 @@ path = "assets/textures/units/tank_body.png"
 usage = "unit_body"
 
 [[assets]]
+id = "simple_warfare:texture.unit.tank.turret"
+kind = "image"
+path = "assets/textures/units/tank_turret.png"
+usage = "unit_attachment"
+
+[[assets]]
+id = "simple_warfare:texture.unit.engineer.body"
+kind = "image"
+path = "assets/textures/units/engineer_body.png"
+usage = "unit_body"
+
+[[assets]]
 id = "simple_warfare:texture.unit.factory.body"
 kind = "image"
 path = "assets/textures/units/factory_body.png"
 usage = "unit_body"
+
+[[assets]]
+id = "simple_warfare:texture.unit.extractor.body"
+kind = "image"
+path = "assets/textures/units/extractor_body.png"
+usage = "unit_body"
+
+[[assets]]
+id = "simple_warfare:texture.unit.turret.base"
+kind = "image"
+path = "assets/textures/units/turret_base.png"
+usage = "unit_body"
+
+[[assets]]
+id = "simple_warfare:texture.unit.turret.top"
+kind = "image"
+path = "assets/textures/units/turret_top.png"
+usage = "unit_attachment"
+
+[[assets]]
+id = "simple_warfare:texture.unit.helicopter.body"
+kind = "image"
+path = "assets/textures/units/helicopter_body.png"
+usage = "unit_body"
+
+[[assets]]
+id = "simple_warfare:texture.unit.helicopter.blades"
+kind = "image"
+path = "assets/textures/units/helicopter_blades.png"
+usage = "unit_attachment"
 
 [[assets]]
 id = "simple_warfare:texture.projectile.tank_shell"

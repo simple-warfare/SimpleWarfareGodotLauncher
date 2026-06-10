@@ -40,7 +40,7 @@ options = [
 weapons = ["simple_warfare:weapon.engineer_tool"]
 
 [render]
-body = "simple_warfare:texture.unit.tank.body"
+body = "simple_warfare:texture.unit.engineer.body"
 selection_radius = 18.0
 
 [actions]
