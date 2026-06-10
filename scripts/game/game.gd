@@ -10,6 +10,7 @@ const MOVE_TARGET_Z := 80
 const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
 const MISSING_UNIT_GRACE_FRAMES := 6
+const UNIT_TEXTURE_FACING_OFFSET_DEGREES := 90.0
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -667,7 +668,7 @@ func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
 	var unit_node := _get_or_create_unit_node(unit_id)
 	unit_node.position = _unit_snapshot_position(unit)
 	var visuals: Node2D = unit_node.get_node("Visuals")
-	visuals.rotation_degrees = float(unit.get("facing_degrees", 0.0))
+	visuals.rotation_degrees = float(unit.get("facing_degrees", 0.0)) + UNIT_TEXTURE_FACING_OFFSET_DEGREES
 
 	var body: ColorRect = visuals.get_node("Body")
 	var radius: float = float(unit.get("radius", UNIT_SIZE.x * 0.5))
