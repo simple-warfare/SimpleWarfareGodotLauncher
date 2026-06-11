@@ -35,5 +35,7 @@ build_menu = [
 
 [render]
 body = "simple_warfare:texture.unit.factory.body"
+rotates_with_facing = false
+facing_offset_degrees = 0.0
 selection_radius = 35.0
 

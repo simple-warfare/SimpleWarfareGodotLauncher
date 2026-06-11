@@ -1,8 +1,13 @@
 id = "simple_warfare:movement.structure"
 kind = "structure"
+drive_model = "omnidirectional"
 pathing_layer = "land"
 max_speed = 0.0
 acceleration = 0.0
 deceleration = 0.0
+brake_deceleration = 0.0
+reverse_speed_ratio = 0.0
 turn_rate_degrees_per_second = 0.0
+turn_acceleration_degrees_per_second_squared = 0.0
+turn_deceleration_degrees_per_second_squared = 0.0
 

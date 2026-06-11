@@ -1,15 +1,13 @@
-id = "simple_warfare:movement.air_light"
-kind = "air"
+id = "simple_warfare:movement.land_hover"
+kind = "hover"
 drive_model = "omnidirectional"
-pathing_layer = "air"
-max_speed = 1.35
-acceleration = 2.2
-deceleration = 3.6
-brake_deceleration = 5.2
+pathing_layer = "land"
+max_speed = 0.75
+acceleration = 1.8
+deceleration = 3.8
+brake_deceleration = 5.4
 reverse_speed_ratio = 1.0
 turn_rate_degrees_per_second = 720.0
 turn_acceleration_degrees_per_second_squared = 1800.0
 turn_deceleration_degrees_per_second_squared = 2200.0
-target_height = 20.0
 sliding = true
-

@@ -34,16 +34,17 @@ weapons = ["simple_warfare:weapon.tank_cannon"]
 
 [render]
 body = "simple_warfare:texture.unit.tank.body"
-# Optional: source rect for sprite sheet slicing (pixels within the texture)
-# body_source = { x = 0, y = 0, width = 64, height = 64 }
-# Optional: frame animation from a sprite sheet
-# [render.animation]
-# frame_width = 64
-# frame_height = 64
-# frame_count = 8
-# frame_duration_seconds = 0.12
-# frames_per_row = 4
+rotates_with_facing = true
+facing_offset_degrees = 90.0
+attachments = [
+  { id = "turret", sprite = "simple_warfare:texture.unit.tank.turret", mount = { x = 0.0, y = 0.0 }, follows_aim = true },
+]
 selection_radius = 11.0
+
+[render.body_animation]
+mode = "loop_when_moving"
+frames = [0, 1, 2]
+frames_per_second = 8.0
 
 [actions]
 available = []

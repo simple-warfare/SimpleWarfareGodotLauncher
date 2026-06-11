@@ -38,9 +38,11 @@ build_time_seconds = 13.9
 weapons = ["simple_warfare:weapon.tank_cannon"]
 
 [render]
-body = "simple_warfare:texture.unit.tank.body"
+body = "simple_warfare:texture.unit.helicopter.body"
+rotates_with_facing = true
+facing_offset_degrees = 90.0
 attachments = [
-  { id = "rotor", sprite = "simple_warfare:texture.unit.tank.body", mount = { x = 0.0, y = 0.0 }, spin_rate_degrees_per_second = 1800.0 },
+  { id = "rotor", sprite = "simple_warfare:texture.unit.helicopter.blades", mount = { x = 0.0, y = 0.0 }, pivot = { x = 23.0, y = 10.0 }, spin_rate_degrees_per_second = 1800.0 },
 ]
 shadow = "auto"
 selection_radius = 15.0
