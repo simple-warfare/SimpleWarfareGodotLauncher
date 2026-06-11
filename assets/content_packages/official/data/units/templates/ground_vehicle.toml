@@ -13,7 +13,5 @@ profile = "simple_warfare:movement.land_tracked"
 collision = "ground_unit"
 
 [render]
-rotates_with_facing = true
-facing_offset_degrees = 90.0
 shadow = "auto"
 

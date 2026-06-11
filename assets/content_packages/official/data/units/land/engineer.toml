@@ -23,9 +23,6 @@ self_regen_per_second = 6.0
 radius = 220.0
 reveals_fog = true
 
-[movement]
-profile = "simple_warfare:movement.land_hover"
-
 [economy]
 cost = { "simple_warfare:resource.credits" = 3500 }
 build_time_seconds = 33.3
@@ -43,9 +40,7 @@ options = [
 weapons = ["simple_warfare:weapon.engineer_tool"]
 
 [render]
-body = "simple_warfare:texture.unit.engineer.body"
-rotates_with_facing = true
-facing_offset_degrees = 90.0
+body = "simple_warfare:texture.unit.tank.body"
 selection_radius = 18.0
 
 [actions]

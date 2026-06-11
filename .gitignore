@@ -33,5 +33,3 @@ android/
 
 # GDExtension binaries are built from the Rust workspace.
 addons/rusty_core/bin/
-*.import
-addons/rusty_core/bin/windows/x86_64/gdextension.dll
