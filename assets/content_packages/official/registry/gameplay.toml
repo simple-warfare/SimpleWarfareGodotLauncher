@@ -19,6 +19,7 @@ terrain = [
 
 movement = [
   "data/movement/land_tracked.toml",
+  "data/movement/land_hover.toml",
   "data/movement/structure.toml",
   "data/movement/air.toml",
 ]

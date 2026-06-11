@@ -5,5 +5,7 @@ aiming_model = "turret"
 turret_multi_targeting = false
 
 [render]
+rotates_with_facing = true
+facing_offset_degrees = 90.0
 turret_layer = "over_body"
 

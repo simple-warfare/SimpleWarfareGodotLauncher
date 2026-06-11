@@ -177,27 +177,27 @@ func get_frontend_frame() -> Dictionary:
 
 
 func initialize_with_assets_path(assets_path: String) -> Dictionary:
-	return initialize_with_paths(assets_path, assets_path.path_join("content_packages/official_base_game"))
+	return initialize_with_paths(assets_path, assets_path.path_join("content_packages/official"))
 
 
 func initialize_with_paths(assets_path: String, content_package_path: String) -> Dictionary:
 	if !_available:
-		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
-		_store_runtime_result(result)
+		var unavailable_result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(unavailable_result)
 		state_changed.emit()
-		return result
+		return unavailable_result
 
 	if assets_path.is_empty():
-		var result := _runtime_result(false, "invalid_assets_root", "assets path is empty before calling Rust.")
-		_store_runtime_result(result)
+		var invalid_assets_result := _runtime_result(false, "invalid_assets_root", "assets path is empty before calling Rust.")
+		_store_runtime_result(invalid_assets_result)
 		state_changed.emit()
-		return result
+		return invalid_assets_result
 
 	if content_package_path.is_empty():
-		var result := _runtime_result(false, "invalid_content_root", "content package path is empty before calling Rust.")
-		_store_runtime_result(result)
+		var invalid_content_result := _runtime_result(false, "invalid_content_root", "content package path is empty before calling Rust.")
+		_store_runtime_result(invalid_content_result)
 		state_changed.emit()
-		return result
+		return invalid_content_result
 
 	# Godot 的 user:// 是虚拟路径；传给 Rust 前必须转成平台真实路径。
 	var result := _store_runtime_result(_rusty_core.call("initialize_with_paths", assets_path, content_package_path))
@@ -215,10 +215,10 @@ func start_host() -> Dictionary:
 
 func start_client(server_addr: String) -> Dictionary:
 	if !_available:
-		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
-		_store_runtime_result(result)
+		var unavailable_result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(unavailable_result)
 		state_changed.emit()
-		return result
+		return unavailable_result
 
 	var result := _store_runtime_result(_rusty_core.call("start_client", server_addr))
 
@@ -228,10 +228,10 @@ func start_client(server_addr: String) -> Dictionary:
 
 func shutdown() -> Dictionary:
 	if !_available:
-		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
-		_store_runtime_result(result)
+		var unavailable_result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(unavailable_result)
 		state_changed.emit()
-		return result
+		return unavailable_result
 
 	var result := _store_runtime_result(_rusty_core.call("shutdown"))
 	state_changed.emit()
@@ -249,12 +249,13 @@ func update_runtime(delta_seconds: float) -> Dictionary:
 	return _store_runtime_result(_rusty_core.call("update", delta_seconds))
 
 
-func issue_move_command(entity_id: int, target_position: Vector2) -> Dictionary:
+func issue_move_command(entity_id: int, target_position: Vector2, reverse: bool = false) -> Dictionary:
 	return submit_player_command({
 		"type": "move_entity",
 		"entity_id": entity_id,
 		"target_x": target_position.x,
 		"target_y": target_position.y,
+		"reverse": reverse,
 	})
 
 
@@ -297,10 +298,10 @@ func submit_player_command(command: Dictionary) -> Dictionary:
 
 func _call_runtime_mode(method_name: String) -> Dictionary:
 	if !_available:
-		var result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
-		_store_runtime_result(result)
+		var unavailable_result := _runtime_result(false, "rusty_core_unavailable", "RustyCore class is not available.")
+		_store_runtime_result(unavailable_result)
 		state_changed.emit()
-		return result
+		return unavailable_result
 
 	var result := _store_runtime_result(_rusty_core.call(method_name))
 	state_changed.emit()

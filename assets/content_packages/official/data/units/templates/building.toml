@@ -13,5 +13,7 @@ profile = "simple_warfare:movement.structure"
 collision = "building"
 
 [render]
+rotates_with_facing = false
+facing_offset_degrees = 0.0
 shadow = "none"
 
