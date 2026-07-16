@@ -9,8 +9,9 @@ const OBJECT_LAYER_Z_BASE := 40
 const MOVE_TARGET_Z := 80
 const MAP_BOUNDS_Z := 90
 const UNIT_Z := 100
-const MISSING_UNIT_GRACE_FRAMES := 6
 const SELECTION_DRAG_THRESHOLD := 6.0
+const HUD_REFRESH_INTERVAL_SECONDS := 0.125
+const INTEREST_UPDATE_INTERVAL_SECONDS := 0.2
 
 @onready var _world: Node2D = %World
 @onready var _camera: Camera2D = %Camera
@@ -25,7 +26,8 @@ const SELECTION_DRAG_THRESHOLD := 6.0
 
 var _unit_nodes: Dictionary = {}
 var _unit_snapshots: Dictionary = {}
-var _missing_unit_counts: Dictionary = {}
+var _unit_static_visual_keys: Dictionary = {}
+var _unit_label_keys: Dictionary = {}
 var _move_target_markers: Dictionary = {}
 var _selected_unit_id := 0
 var _selected_unit_ids: Dictionary = {}
@@ -42,9 +44,11 @@ var _tile_texture_cache: Dictionary = {}
 var _unit_texture_cache: Dictionary = {}
 var _content_package_root := ""
 var _frame_delta := 0.0
+var _hud_refresh_elapsed := HUD_REFRESH_INTERVAL_SECONDS
 var _camera_initialized := false
 var _camera_min_zoom := 0.5
 var _camera_max_zoom := 2.0
+var _interest_update_elapsed := INTEREST_UPDATE_INTERVAL_SECONDS
 
 
 func _ready() -> void:
@@ -61,10 +65,14 @@ func _process(delta: float) -> void:
 	RustBackend.update_runtime(delta)
 	_refresh_from_snapshot()
 	_handle_camera_movement(delta)
+	_interest_update_elapsed += delta
+	if _interest_update_elapsed >= INTEREST_UPDATE_INTERVAL_SECONDS:
+		_interest_update_elapsed = 0.0
+		_update_client_interest()
 
 
 func _refresh_from_snapshot() -> void:
-	var snapshot := RustBackend.get_frontend_snapshot()
+	var snapshot := RustBackend.get_frontend_state()
 	_content_package_root = str(snapshot.get("content_package_root", ""))
 	var units: Array = snapshot.get("units", [])
 	var objects: Array = snapshot.get("objects", [])
@@ -85,13 +93,37 @@ func _refresh_from_snapshot() -> void:
 			continue
 
 		alive_unit_ids[unit_id] = true
-		_missing_unit_counts.erase(unit_id)
 		_unit_snapshots[unit_id] = unit
 		_update_unit_node(unit_id, unit)
 		_sync_move_target_marker(unit_id, unit)
 
 	_remove_missing_units(alive_unit_ids)
 	_refresh_command_controls()
+	_hud_refresh_elapsed += _frame_delta
+	if _hud_refresh_elapsed < HUD_REFRESH_INTERVAL_SECONDS:
+		return
+	_hud_refresh_elapsed = 0.0
+	_refresh_hud(snapshot, map, resources, commands, room, units.size())
+
+
+func _update_client_interest() -> void:
+	var half_extents := get_viewport_rect().size * 0.5 / _camera.zoom
+	var tracked_ids: Array = []
+	for unit_id in _selected_unit_ids.keys():
+		tracked_ids.append(int(unit_id))
+		if tracked_ids.size() >= 256:
+			break
+	RustBackend.update_client_interest(_camera.global_position, half_extents, tracked_ids)
+
+
+func _refresh_hud(
+	snapshot: Dictionary,
+	map: Dictionary,
+	resources: Dictionary,
+	commands: Dictionary,
+	room: Dictionary,
+	unit_count: int
+) -> void:
 	_status_value.text = "map=%s mode=%s room=%s resources=%s control=%s status=%s server_tick=%s client_tick=%s units=%s selected=%s" % [
 		map.get("title", "unknown"),
 		snapshot.get("mode", "none"),
@@ -101,13 +133,12 @@ func _refresh_from_snapshot() -> void:
 		snapshot.get("status", "unknown"),
 		snapshot.get("server_tick", 0),
 		snapshot.get("client_tick", 0),
-		units.size(),
+		unit_count,
 		_selected_unit_summary(),
 	]
 	var debug_lines := [
 		"move=%s" % _movement_command_summary(),
 		"production=%s" % _production_command_summary(),
-		"sync=%s" % _lightyear_prediction_summary(commands),
 		"commands=%s" % _command_lifecycle_summary(commands),
 	]
 	var latest_diagnostic := RustBackend.get_latest_diagnostic_summary()
@@ -429,8 +460,11 @@ func _unit_body_animation(render: Dictionary) -> Dictionary:
 	return animation
 
 
-func _update_unit_render_visuals(unit_id: int, unit: Dictionary, visuals: Node2D, diameter: float) -> void:
+func _update_unit_static_visuals(unit_id: int, unit: Dictionary, visuals: Node2D, diameter: float) -> void:
 	var render: Dictionary = _unit_render(unit)
+	visuals.set_meta("render_definition", render)
+	visuals.set_meta("facing_offset_degrees", float(render.get("facing_offset_degrees", 0.0)))
+	visuals.set_meta("rotates_with_facing", bool(render.get("rotates_with_facing", true)))
 	var body_value: Variant = render.get("body", {})
 	var body: Dictionary = {}
 	if typeof(body_value) == TYPE_DICTIONARY:
@@ -450,10 +484,32 @@ func _update_unit_render_visuals(unit_id: int, unit: Dictionary, visuals: Node2D
 			fallback_body.visible = false
 			body_sprite.visible = true
 			body_sprite.texture = texture
-			_apply_unit_sprite_region(body_sprite, body, _unit_body_animation(render), bool(unit.get("is_moving", false)))
+			# Animation frame selection is dynamic; only configure the texture,
+			# region geometry and scale when the unit's visual definition changes.
+			_apply_unit_sprite_region(body_sprite, body, {}, false)
 			_scale_unit_sprite(body_sprite, body, diameter)
 
-	_update_unit_attachments(unit_id, render, visuals.get_node("Attachments"), diameter)
+	_setup_unit_attachments(unit_id, render, visuals.get_node("Attachments"), diameter)
+
+
+func _update_unit_dynamic_visuals(unit: Dictionary, visuals: Node2D) -> void:
+	var render_value: Variant = visuals.get_meta("render_definition", {})
+	var render: Dictionary = {}
+	if typeof(render_value) == TYPE_DICTIONARY:
+		render = render_value
+	var body_value: Variant = render.get("body", {})
+	if typeof(body_value) == TYPE_DICTIONARY:
+		var body: Dictionary = body_value
+		var body_sprite: Sprite2D = visuals.get_node("BodySprite")
+		var animation := _unit_body_animation(render)
+		if body_sprite.visible && !animation.is_empty():
+			_apply_unit_sprite_region(
+				body_sprite,
+				body,
+				animation,
+				bool(unit.get("is_moving", false))
+			)
+	_update_unit_attachment_motion(render, visuals.get_node("Attachments"))
 
 
 func _apply_unit_sprite_region(sprite: Sprite2D, sprite_definition: Dictionary, animation: Dictionary, is_moving: bool) -> void:
@@ -512,7 +568,7 @@ func _unit_sprite_display_size(sprite: Sprite2D, sprite_definition: Dictionary) 
 	return sprite.texture.get_size()
 
 
-func _update_unit_attachments(_unit_id: int, render: Dictionary, attachments_root: Node2D, diameter: float) -> void:
+func _setup_unit_attachments(_unit_id: int, render: Dictionary, attachments_root: Node2D, diameter: float) -> void:
 	var alive_attachment_ids: Dictionary = {}
 	for attachment_value in _map_array(render, "attachments"):
 		if typeof(attachment_value) != TYPE_DICTIONARY:
@@ -531,13 +587,12 @@ func _update_unit_attachments(_unit_id: int, render: Dictionary, attachments_roo
 			continue
 		sprite.visible = true
 		sprite.texture = texture
-		_apply_unit_sprite_region(sprite, sprite_definition, {}, true)
+		_apply_unit_sprite_region(sprite, sprite_definition, {}, false)
 		_scale_unit_sprite(sprite, sprite_definition, diameter)
 		sprite.position = Vector2(float(attachment.get("mount_x", 0.0)), float(attachment.get("mount_y", 0.0)))
-		var spin_rate: float = float(attachment.get("spin_rate_degrees_per_second", 0.0))
-		if spin_rate != 0.0:
-			sprite.rotation_degrees = fmod(float(Time.get_ticks_msec()) * 0.001 * spin_rate, 360.0)
-		else:
+		var spin_rate := float(attachment.get("spin_rate_degrees_per_second", 0.0))
+		sprite.set_meta("spin_rate_degrees_per_second", spin_rate)
+		if spin_rate == 0.0:
 			sprite.rotation_degrees = 0.0
 		var pivot: Dictionary = _unit_sprite_pivot(sprite_definition)
 		if !pivot.is_empty():
@@ -546,6 +601,22 @@ func _update_unit_attachments(_unit_id: int, render: Dictionary, attachments_roo
 	for child in attachments_root.get_children():
 		if !alive_attachment_ids.has(str(child.name)):
 			child.queue_free()
+
+
+func _update_unit_attachment_motion(render: Dictionary, attachments_root: Node2D) -> void:
+	for attachment_value in _map_array(render, "attachments"):
+		if typeof(attachment_value) != TYPE_DICTIONARY:
+			continue
+		var attachment: Dictionary = attachment_value
+		var attachment_id := str(attachment.get("id", "attachment"))
+		if !attachments_root.has_node(attachment_id):
+			continue
+		var sprite: Sprite2D = attachments_root.get_node(attachment_id)
+		if !sprite.visible:
+			continue
+		var spin_rate := float(sprite.get_meta("spin_rate_degrees_per_second", 0.0))
+		if spin_rate != 0.0:
+			sprite.rotation_degrees = fmod(float(Time.get_ticks_msec()) * 0.001 * spin_rate, 360.0)
 
 
 func _get_or_create_attachment_sprite(parent: Node2D, attachment_id: String) -> Sprite2D:
@@ -763,32 +834,41 @@ func _update_unit_node(unit_id: int, unit: Dictionary) -> void:
 	var unit_node := _get_or_create_unit_node(unit_id)
 	unit_node.position = _unit_snapshot_position(unit)
 	var visuals: Node2D = unit_node.get_node("Visuals")
-	var render: Dictionary = _unit_render(unit)
-	var facing_offset: float = float(render.get("facing_offset_degrees", 0.0))
-	if bool(render.get("rotates_with_facing", true)):
+	var radius: float = float(unit.get("radius", UNIT_SIZE.x * 0.5))
+	var diameter: float = max(radius * 2.0, 8.0)
+	var static_key: Array = [unit.get("kind", ""), unit.get("team", 0), diameter, _content_package_root]
+	if _unit_static_visual_keys.get(unit_id, []) != static_key:
+		_unit_static_visual_keys[unit_id] = static_key
+		var body: ColorRect = visuals.get_node("Body")
+		body.size = Vector2(diameter, diameter)
+		body.position = -body.size * 0.5
+		body.color = _team_color(int(unit.get("team", 0)))
+		body.rotation_degrees = 0.0
+		var selection: Line2D = visuals.get_node("Selection")
+		selection.points = _selection_points(diameter * 0.5 + SELECTION_PADDING)
+		_update_unit_static_visuals(unit_id, unit, visuals, diameter)
+
+	var facing_offset := float(visuals.get_meta("facing_offset_degrees", 0.0))
+	if bool(visuals.get_meta("rotates_with_facing", true)):
 		visuals.rotation_degrees = float(unit.get("facing_degrees", 0.0)) + facing_offset
 	else:
 		visuals.rotation_degrees = facing_offset
-
-	var body: ColorRect = visuals.get_node("Body")
-	var radius: float = float(unit.get("radius", UNIT_SIZE.x * 0.5))
-	var diameter: float = max(radius * 2.0, 8.0)
-	body.size = Vector2(diameter, diameter)
-	body.position = -body.size * 0.5
-	body.color = _team_color(int(unit.get("team", 0)))
-	body.rotation_degrees = 0.0
-	_update_unit_render_visuals(unit_id, unit, visuals, diameter)
-
+	_update_unit_dynamic_visuals(unit, visuals)
 	var selection: Line2D = visuals.get_node("Selection")
-	var selection_radius: float = diameter * 0.5 + SELECTION_PADDING
-	selection.points = _selection_points(selection_radius)
 	selection.visible = _is_unit_selected(unit_id)
 
 	var label: Label = unit_node.get_node("Label")
-	label.text = "%s\nhp:%s" % [
+	var label_key: Array = [
 		unit.get("display_name", unit.get("kind", "unit")),
-		"%s/%s" % [unit.get("health", 0), unit.get("max_health", 0)],
+		unit.get("health", 0),
+		unit.get("max_health", 0),
 	]
+	if _unit_label_keys.get(unit_id, []) != label_key:
+		_unit_label_keys[unit_id] = label_key
+		label.text = "%s\nhp:%s" % [
+			unit.get("display_name", unit.get("kind", "unit")),
+			"%s/%s" % [unit.get("health", 0), unit.get("max_health", 0)],
+		]
 
 
 func _select_unit_at_screen_position(screen_position: Vector2) -> void:
@@ -1211,147 +1291,19 @@ func _production_command_summary() -> String:
 func _command_lifecycle_summary(commands: Dictionary) -> String:
 	var result_status := str(commands.get("last_result_status", ""))
 	var rejected_reason := str(commands.get("last_rejected_reason", ""))
-	var replay_summary := _replay_summary(commands)
 	if result_status == "rejected" && rejected_reason != "":
-		return "pending:%s ack:%s result:%s rejected:%s %s %s %s" % [
+		return "pending:%s ack:%s result:%s rejected:%s" % [
 			commands.get("pending_count", 0),
 			commands.get("acknowledged_count", 0),
 			result_status,
 			rejected_reason,
-			replay_summary,
-			_reconciliation_summary(commands),
-			_prediction_history_summary(commands),
 		]
-	return "pending:%s ack:%s result:%s applied:%s/%s %s %s %s" % [
+	return "pending:%s ack:%s result:%s applied:%s/%s" % [
 		commands.get("pending_count", 0),
 		commands.get("acknowledged_count", 0),
 		result_status,
 		commands.get("last_applied_command_id", 0),
 		commands.get("last_applied_sequence", 0),
-		replay_summary,
-		_reconciliation_summary(commands),
-		_prediction_history_summary(commands),
-	]
-
-
-func _replay_summary(commands: Dictionary) -> String:
-	var replay_count := int(commands.get("replay_command_count", 0))
-	if replay_count == 0:
-		return "replay:none"
-
-	return "replay:%s base:%s units:%s seq:%s-%s" % [
-		replay_count,
-		commands.get("replay_base_server_tick", 0),
-		commands.get("replay_base_unit_count", 0),
-		commands.get("replay_first_sequence", 0),
-		commands.get("replay_last_sequence", 0),
-	]
-
-
-func _lightyear_prediction_summary(commands: Dictionary) -> String:
-	var predicted_count := int(commands.get("lightyear_predicted_unit_count", 0))
-	var replicated_count := int(commands.get("replicated_unit_count", 0))
-	if replicated_count == 0:
-		return "ly:none"
-
-	var predicted_ids := PackedStringArray()
-	for unit_value in _dictionary_array(commands, "replicated_units"):
-		if typeof(unit_value) != TYPE_DICTIONARY:
-			continue
-		var unit: Dictionary = unit_value
-		if bool(unit.get("is_lightyear_predicted", false)):
-			predicted_ids.append(str(unit.get("unit_id", 0)))
-
-	if predicted_ids.is_empty():
-		return "ly:%s/%s ids:none" % [predicted_count, replicated_count]
-	return "ly:%s/%s ids:%s" % [predicted_count, replicated_count, ",".join(predicted_ids)]
-
-
-func _reconciliation_summary(commands: Dictionary) -> String:
-	var reconciled_count := int(commands.get("reconciled_command_count", 0))
-	var mismatch_count := int(commands.get("reconciliation_mismatch_count", 0))
-	var status := str(commands.get("last_reconciliation_status", ""))
-	if reconciled_count == 0 && status.is_empty():
-		return "rec:none"
-
-	var command_id := int(commands.get("last_reconciled_command_id", 0))
-	var sequence := int(commands.get("last_reconciled_sequence", 0))
-	var round_trip_ticks := int(commands.get("last_reconciliation_round_trip_ticks", 0))
-	var target_error := float(commands.get("last_reconciliation_target_error", 0.0))
-	var position_error := float(commands.get("last_reconciliation_position_error", 0.0))
-	var correction := str(commands.get("last_reconciliation_correction", ""))
-	var error := str(commands.get("last_reconciliation_error", ""))
-	if !error.is_empty():
-		return "rec:%s/%s last:%s/%s status:%s rt:%s corr:%s pos_err:%.2f error:%s" % [
-			reconciled_count,
-			mismatch_count,
-			command_id,
-			sequence,
-			status,
-			round_trip_ticks,
-			correction,
-			position_error,
-			error,
-		]
-	return "rec:%s/%s last:%s/%s status:%s rt:%s corr:%s target_err:%.2f pos_err:%.2f" % [
-		reconciled_count,
-		mismatch_count,
-		command_id,
-		sequence,
-		status,
-		round_trip_ticks,
-		correction,
-		target_error,
-		position_error,
-	]
-
-
-func _prediction_history_summary(commands: Dictionary) -> String:
-	var history_count := int(commands.get("prediction_history_count", 0))
-	if history_count == 0:
-		return "pred:none"
-
-	var history := _dictionary_array(commands, "prediction_history")
-	if !history.is_empty():
-		var entries := PackedStringArray()
-		for entry_value in history:
-			if typeof(entry_value) != TYPE_DICTIONARY:
-				continue
-			var entry: Dictionary = entry_value
-			entries.append("#%s/%s u:%s err:%.2f corr:%s" % [
-				entry.get("command_id", 0),
-				entry.get("sequence", 0),
-				entry.get("entity_id", 0),
-				float(entry.get("position_error", 0.0)),
-				str(entry.get("correction", "")),
-			])
-		if !entries.is_empty():
-			return "pred:%s recent:%s" % [history_count, " | ".join(entries)]
-
-	var command_id := int(commands.get("last_prediction_command_id", 0))
-	var sequence := int(commands.get("last_prediction_sequence", 0))
-	var entity_id := int(commands.get("last_prediction_entity_id", 0))
-	var predicted := Vector2(
-		float(commands.get("last_prediction_x", 0.0)),
-		float(commands.get("last_prediction_y", 0.0))
-	)
-	var authoritative := Vector2(
-		float(commands.get("last_prediction_authoritative_x", 0.0)),
-		float(commands.get("last_prediction_authoritative_y", 0.0))
-	)
-	var position_error := float(commands.get("last_prediction_position_error", 0.0))
-	var correction := str(commands.get("last_prediction_correction", ""))
-	return "pred:%s last:%s/%s unit:%s p:(%.1f,%.1f) a:(%.1f,%.1f) err:%.2f corr:%s" % [
-		history_count,
-		command_id,
-		sequence,
-		entity_id,
-		predicted.x,
-		predicted.y,
-		authoritative.x,
-		authoritative.y,
-		position_error,
-		correction,
 	]
 
 
@@ -1504,17 +1456,13 @@ func _remove_missing_units(alive_unit_ids: Dictionary) -> void:
 	for unit_id in _unit_nodes.keys():
 		var int_unit_id := int(unit_id)
 		if alive_unit_ids.has(int_unit_id):
-			_missing_unit_counts.erase(int_unit_id)
-			continue
-		var missing_count := int(_missing_unit_counts.get(int_unit_id, 0)) + 1
-		_missing_unit_counts[int_unit_id] = missing_count
-		if missing_count < MISSING_UNIT_GRACE_FRAMES:
 			continue
 
 		var node: Node = _unit_nodes[unit_id]
 		_unit_nodes.erase(unit_id)
 		_unit_snapshots.erase(unit_id)
-		_missing_unit_counts.erase(int_unit_id)
+		_unit_static_visual_keys.erase(int_unit_id)
+		_unit_label_keys.erase(int_unit_id)
 		_remove_move_target_marker(int_unit_id)
 		if int_unit_id == _selected_unit_id:
 			_selected_unit_id = 0

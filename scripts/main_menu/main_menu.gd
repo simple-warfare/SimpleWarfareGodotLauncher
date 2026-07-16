@@ -38,7 +38,7 @@ func _process(delta: float) -> void:
 func _refresh_status() -> void:
 	var rust_state := "ready" if AppState.rust_ready else "unavailable"
 	var assets_state := "ready" if AppState.assets_ready else "unavailable"
-	var snapshot := RustBackend.get_frontend_snapshot()
+	var snapshot := RustBackend.get_frontend_state()
 	var units: Array = snapshot.get("units", [])
 	var first_unit_text := "none"
 

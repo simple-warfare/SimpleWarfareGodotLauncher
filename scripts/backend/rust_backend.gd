@@ -12,6 +12,9 @@ var _diagnostics_text: TextEdit
 var _diagnostics_status_label: Label
 var _diagnostics_level_filter: OptionButton
 var _diagnostics_target_filter: LineEdit
+var _frontend_epoch := 0
+var _frontend_revision := 0
+var _frontend_snapshot: Dictionary = {}
 
 
 func _ready() -> void:
@@ -82,20 +85,18 @@ func get_diagnostics_snapshot() -> Dictionary:
 
 
 func get_latest_diagnostic_summary() -> String:
-	var entries := _diagnostic_entries()
-	if entries.is_empty():
+	if !_available:
 		return ""
+	return str(_rusty_core.call("get_latest_diagnostic_summary"))
 
-	var entry_value: Variant = entries[entries.size() - 1]
-	if typeof(entry_value) != TYPE_DICTIONARY:
-		return ""
 
-	var entry: Dictionary = entry_value
-	return "#%s %s %s" % [
-		entry.get("sequence", 0),
-		entry.get("level", "info"),
-		entry.get("message", ""),
-	]
+func get_latest_diagnostic_entry() -> Dictionary:
+	if !_available:
+		return {}
+	var entry: Variant = _rusty_core.call("get_latest_diagnostic_entry")
+	if typeof(entry) != TYPE_DICTIONARY:
+		return {}
+	return entry
 
 
 func get_recent_diagnostics_text(limit: int = 5, min_level: String = "", target_filter: String = "") -> String:
@@ -165,15 +166,102 @@ func _format_diagnostics_snapshot(diagnostics: Dictionary, limit: int, min_level
 	return "\n".join(lines)
 
 
-func get_frontend_snapshot() -> Dictionary:
+func get_frontend_state() -> Dictionary:
 	if !_available:
 		return _empty_frontend_snapshot("unavailable")
 
-	var snapshot = _rusty_core.call("get_frontend_snapshot")
-	if typeof(snapshot) != TYPE_DICTIONARY:
-		return _empty_frontend_snapshot("invalid_snapshot")
+	var frame = _rusty_core.call("get_frontend_frame", _frontend_epoch, _frontend_revision)
+	if typeof(frame) != TYPE_DICTIONARY:
+		return _empty_frontend_snapshot("invalid_frame")
+	_apply_frontend_frame(frame)
+	return _frontend_snapshot
 
-	return snapshot
+
+func get_frontend_frame(epoch: int, revision: int) -> Dictionary:
+	if !_available:
+		return {"epoch": 0, "revision": 0, "type": "resync", "snapshot": _empty_frontend_snapshot("unavailable"), "delta": {}}
+	var frame = _rusty_core.call("get_frontend_frame", epoch, revision)
+	if typeof(frame) != TYPE_DICTIONARY:
+		return {"epoch": 0, "revision": 0, "type": "resync", "snapshot": _empty_frontend_snapshot("invalid_frame"), "delta": {}}
+	return frame
+
+
+func update_client_interest(center: Vector2, half_extents: Vector2, tracked_ids: Array) -> bool:
+	if !_available:
+		return false
+	var packed_ids := PackedInt64Array()
+	for id_value in tracked_ids:
+		packed_ids.append(int(id_value))
+	return bool(_rusty_core.call(
+		"update_client_interest",
+		center.x,
+		center.y,
+		half_extents.x,
+		half_extents.y,
+		packed_ids
+	))
+
+
+func _apply_frontend_frame(frame: Dictionary) -> void:
+	_frontend_epoch = int(frame.get("epoch", _frontend_epoch))
+	_frontend_revision = int(frame.get("revision", _frontend_revision))
+	var frame_type := str(frame.get("type", "noop"))
+	if frame_type == "initial" || frame_type == "resync":
+		var snapshot_value: Variant = frame.get("snapshot", {})
+		if typeof(snapshot_value) == TYPE_DICTIONARY:
+			_frontend_snapshot = snapshot_value
+		return
+	if _frontend_snapshot.is_empty():
+		_frontend_snapshot = _empty_frontend_snapshot("running")
+	if frame_type != "delta":
+		return
+
+	var delta_value: Variant = frame.get("delta", {})
+	if typeof(delta_value) != TYPE_DICTIONARY:
+		return
+	var delta: Dictionary = delta_value
+	var globals_value: Variant = delta.get("globals", {})
+	if typeof(globals_value) == TYPE_DICTIONARY && !Dictionary(globals_value).is_empty():
+		var globals: Dictionary = globals_value
+		for key in ["server_tick", "client_tick", "mode", "status", "content_package_root", "commands", "debug", "room", "map", "resources"]:
+			if globals.has(key):
+				_frontend_snapshot[key] = globals[key]
+	var units: Array = _frontend_snapshot.get("units", [])
+	var unit_by_id := {}
+	for unit_value in units:
+		if typeof(unit_value) == TYPE_DICTIONARY:
+			unit_by_id[int(unit_value.get("id", 0))] = unit_value
+	for id_value in delta.get("despawned_unit_ids", []):
+		unit_by_id.erase(int(id_value))
+	for key in ["spawned_units", "updated_units"]:
+		for unit_value in delta.get(key, []):
+			if typeof(unit_value) == TYPE_DICTIONARY:
+				unit_by_id[int(unit_value.get("id", 0))] = unit_value
+	var merged_units: Array = []
+	for unit_value in unit_by_id.values():
+		merged_units.append(unit_value)
+	merged_units.sort_custom(func(left, right): return int(left.get("id", 0)) < int(right.get("id", 0)))
+	_frontend_snapshot["units"] = merged_units
+
+	var motion_ids: Array = delta.get("motion_ids", [])
+	var motion_positions: Array = delta.get("motion_positions", [])
+	var motion_facing: Array = delta.get("motion_facing", [])
+	var motion_velocity: Array = delta.get("motion_velocity", [])
+	for index in range(motion_ids.size()):
+		var unit_id := int(motion_ids[index])
+		if !unit_by_id.has(unit_id):
+			continue
+		var unit: Dictionary = unit_by_id[unit_id]
+		var position: Array = motion_positions[index] if index < motion_positions.size() else []
+		var velocity: Array = motion_velocity[index] if index < motion_velocity.size() else []
+		if position.size() >= 2:
+			unit["x"] = float(position[0])
+			unit["y"] = float(position[1])
+		if velocity.size() >= 2:
+			unit["velocity_x"] = float(velocity[0])
+			unit["velocity_y"] = float(velocity[1])
+		if index < motion_facing.size():
+			unit["facing_degrees"] = float(motion_facing[index])
 
 
 func initialize_with_assets_path(assets_path: String) -> Dictionary:
@@ -222,6 +310,8 @@ func start_client(server_addr: String) -> Dictionary:
 
 	# Rust runtime 会启动 UDP client；菜单层负责等待首个 server snapshot 后进入游戏场景。
 	var result := _store_runtime_result(_rusty_core.call("start_client", server_addr))
+	if bool(result.get("ok", false)):
+		_reset_frontend_cursor()
 	state_changed.emit()
 	return result
 
@@ -234,6 +324,8 @@ func shutdown() -> Dictionary:
 		return unavailable_result
 
 	var result := _store_runtime_result(_rusty_core.call("shutdown"))
+	if bool(result.get("ok", false)):
+		_reset_frontend_cursor()
 	state_changed.emit()
 	return result
 
@@ -304,8 +396,16 @@ func _call_runtime_mode(method_name: String) -> Dictionary:
 		return unavailable_result
 
 	var result := _store_runtime_result(_rusty_core.call(method_name))
+	if bool(result.get("ok", false)):
+		_reset_frontend_cursor()
 	state_changed.emit()
 	return result
+
+
+func _reset_frontend_cursor() -> void:
+	_frontend_epoch = 0
+	_frontend_revision = 0
+	_frontend_snapshot = {}
 
 
 func _command_feedback(accepted: bool, status: String, rejected_reason: String, detail: String) -> Dictionary:
@@ -369,6 +469,9 @@ func _empty_frontend_snapshot(status: String) -> Dictionary:
 		},
 		"room": {
 			"phase": "lobby",
+			"can_start": false,
+			"start_blocker_code": "room_not_ready",
+			"start_blocker_detail": "lobby readiness is unavailable",
 			"local_player_key": "",
 			"local_team_id": -1,
 			"player_slots": [],

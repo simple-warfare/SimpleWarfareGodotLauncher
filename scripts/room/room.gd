@@ -38,7 +38,7 @@ func _process(delta: float) -> void:
 
 
 func _refresh_from_snapshot() -> void:
-	var snapshot := RustBackend.get_frontend_snapshot()
+	var snapshot := RustBackend.get_frontend_state()
 	var room := _snapshot_room(snapshot)
 	var network := _snapshot_network(snapshot)
 	var commands := _snapshot_commands(snapshot)
@@ -93,7 +93,12 @@ func _refresh_from_snapshot() -> void:
 	]
 	_content_value.text = _content_summary(room, slots)
 
-	_start_button.disabled = !local_is_host || phase != "lobby" || _start_requested || !_content_ready(room, slots)
+	_start_button.disabled = !local_is_host || phase != "lobby" || _start_requested || !bool(room.get("can_start", false))
+	if !_start_requested && !bool(room.get("can_start", false)):
+		var blocker_code := str(room.get("start_blocker_code", ""))
+		var blocker_detail := str(room.get("start_blocker_detail", ""))
+		if !blocker_code.is_empty():
+			_start_status = "blocked: %s %s" % [blocker_code, blocker_detail]
 	_refresh_slots(slots)
 
 
@@ -267,10 +272,9 @@ func _content_ready(room: Dictionary, slots: Array) -> bool:
 func _network_summary(network: Dictionary) -> String:
 	if network.is_empty():
 		return ""
-	return "mode=%s replicated=%s predicted=%s results=%s room=%s" % [
+	return "mode=%s replicated=%s results=%s room=%s" % [
 		network.get("smoothing_mode", "none"),
 		network.get("replicated_unit_count", 0),
-		network.get("lightyear_predicted_unit_count", 0),
 		network.get("command_result_count", 0),
 		network.get("room_phase", "lobby"),
 	]
